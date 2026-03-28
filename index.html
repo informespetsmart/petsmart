@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetSmart | Articulos para Mascotas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .cart-bounce { animation: bounce 0.3s ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-[#0f172a] text-slate-200 antialiased" x-data="shop" x-cloak>
+
+    <nav class="sticky top-0 z-50 bg-[#0f172a]/80 backdrop-blur-xl border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-bolt text-white"></i>
+                </div>
+                <span class="text-xl font-black tracking-tighter uppercase italic">Pet<span class="text-indigo-500">Smart</span></span>
+            </div>
+            
+            <button @click="cartOpen = true" class="relative p-2 hover:bg-slate-800 rounded-full transition-colors">
+                <i class="fa-solid fa-bag-shopping text-2xl" :class="{ 'cart-bounce': animateCart }"></i>
+                <span x-show="cart.length > 0" x-text="cart.length" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-[#0f172a]"></span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="relative py-24 px-6 overflow-hidden">
+        <div class="absolute inset-0 bg-indigo-600/10 blur-[120px] rounded-full -top-24 -left-24"></div>
+        <div class="max-w-4xl mx-auto text-center relative">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
+                Bolsos Transportadores <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Flexibles</span> ya está aquí.
+            </h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Selección exclusiva de tallas con atención personalizada vía WhatsApp 24/7.</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <template x-for="product in products" :key="product.id">
+                <div class="group bg-slate-900/50 border border-slate-800 rounded-3xl overflow-hidden hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
+                    <div class="relative h-80 overflow-hidden">
+                        <img :src="product.image" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent"></div>
+                        <div class="absolute bottom-4 left-4">
+                            <span x-text="product.category" class="text-[10px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full"></span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 x-text="product.name" class="text-xl font-bold mb-2"></h3>
+                        <p x-text="product.desc" class="text-slate-500 text-sm mb-6"></p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-black" x-text="'$' + product.price"></span>
+                            <button @click="addToCart(product)" class="bg-white text-slate-950 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-indigo-500 hover:text-white transition-all transform active:scale-95">
+                                Añadir +
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <div x-show="cartOpen" class="fixed inset-0 z-[100] overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" @click="cartOpen = false"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex">
+            <div class="w-screen max-w-md">
+                <div class="h-full flex flex-col bg-slate-900 shadow-2xl border-l border-slate-800">
+                    <div class="p-6 flex justify-between items-center border-b border-slate-800">
+                        <h2 class="text-xl font-bold">Tu Orden</h2>
+                        <button @click="cartOpen = false" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+                    </div>
+
+                    <div class="flex-1 py-6 overflow-y-auto px-6">
+                        <template x-if="cart.length === 0">
+                            <div class="text-center py-20">
+                                <i class="fa-solid fa-cart-ghost text-5xl text-slate-800 mb-4"></i>
+                                <p class="text-slate-500">Tu carrito está vacío</p>
+                            </div>
+                        </template>
+                        <div class="space-y-6">
+                            <template x-for="(item, index) in cart" :key="index">
+                                <div class="flex items-center gap-4">
+                                    <img :src="item.image" class="w-20 h-20 rounded-xl object-cover border border-slate-800">
+                                    <div class="flex-1">
+                                        <h4 x-text="item.name" class="font-bold"></h4>
+                                        <p x-text="'$' + item.price" class="text-indigo-400 font-bold"></p>
+                                    </div>
+                                    <button @click="removeFromCart(index)" class="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border-t border-slate-800 bg-slate-950/50">
+                        <div class="flex justify-between text-xl font-black mb-6">
+                            <span>Total</span>
+                            <span x-text="'$' + total"></span>
+                        </div>
+                        <button @click="sendWhatsApp" class="w-full bg-[#25d366] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#1ebd58] transition-all">
+                            <i class="fa-brands fa-whatsapp text-xl"></i>
+                            Finalizar Pedido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://wa.me/5491100000000" target="_blank" class="fixed bottom-8 right-8 w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-indigo-600/30 hover:scale-110 transition-transform z-40 border border-indigo-400/50">
+        <i class="fa-solid fa-headset text-white"></i>
+    </a>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('shop', () => ({
+                cartOpen: false,
+                animateCart: false,
+                products: [
+                    { id: 1, name: 'Talla S', price: 899, category: 'Transportadores', desc: 'Pantalla OLED 144Hz y procesador neural de última generación.', image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80' },
+                    { id: 2, name: 'SonicBuds Pro', price: 199, category: 'Audio', desc: 'Audio espacial 360 y cancelación de ruido adaptativa.', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80' },
+                    { id: 3, name: 'Vortex Watch', price: 349, category: 'Wearables', desc: 'Titanio aeroespacial y sensor de oxígeno avanzado.', image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80' }
+                ],
+                cart: [],
+                total: 0,
+                addToCart(product) {
+                    this.cart.push(product);
+                    this.calculateTotal();
+                    this.animateCart = true;
+                    setTimeout(() => this.animateCart = false, 300);
+                },
+                removeFromCart(index) {
+                    this.cart.splice(index, 1);
+                    this.calculateTotal();
+                },
+                calculateTotal() {
+                    this.total = this.cart.reduce((sum, item) => sum + item.price, 0);
+                },
+                sendWhatsApp() {
+                    const phone = "5491100000000"; // CAMBIA TU NÚMERO AQUÍ
+                    let message = "🚀 *Nuevo Pedido NovaTech*\n\n";
+                    this.cart.forEach(item => {
+                        message += `• ${item.name} ($${item.price})\n`;
+                    });
+                    message += `\n💰 *Total a pagar: $${this.total}*`;
+                    message += `\n\n📌 *Deseo coordinar el pago y envío.*`;
+                    
+                    const encodedMessage = encodeURIComponent(message);
+                    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+                }
+            }));
+        });
+    </script>
+</body>
+</html>
