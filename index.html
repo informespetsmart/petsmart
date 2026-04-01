@@ -339,7 +339,7 @@
             </div>
 
             <div class="bg-slate-50 p-8 rounded-[40px] flex justify-between items-center border border-slate-50 mt-8">
-                <span class="text-5xl font-black text-slate-950 italic" x-text="'S/ ' + selectedProduct?.price"></span>
+                <span class="text-3xl font-black text-slate-950 italic" x-text="'S/ ' + selectedProduct?.price"></span>
                 
                 <button @click="addToCartWithColor($event)" 
     :disabled="!selectedVariant || selectedVariant.stock === 0 || (selectedVariant.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor))"
@@ -593,7 +593,19 @@ goToFacebook() {
                     this.calculateTotal();
                 },
 
-                openModal(p) { this.selectedProduct = p; this.selectedVariant = p.variants[0]; this.modalOpen = true; },
+                openModal(p) { 
+    this.selectedProduct = p; 
+    this.selectedVariant = p.variants[0]; 
+    this.modalOpen = true; 
+
+    // Este es el truco para que en móviles suba al inicio del modal
+    this.$nextTick(() => {
+        // Buscamos el contenedor del modal. 
+        // Si tu modal tiene una clase como 'max-h-[90vh]', este código lo reseteará al inicio.
+        const modalContainer = document.querySelector('.overflow-y-auto'); 
+        if (modalContainer) modalContainer.scrollTop = 0;
+    });
+},
 
                 addToCartWithColor(e) { 
                     this.cart.push({ ...this.selectedProduct, selectedColorName: this.selectedVariant.nombreColor, imagenColor: this.selectedVariant.imagenColor });
@@ -676,5 +688,6 @@ goToFacebook() {
         </form>
     </div>
 </div>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
