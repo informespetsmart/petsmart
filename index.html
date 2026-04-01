@@ -61,6 +61,107 @@
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
     background: #4f46e5;
 }
+/* EFECTO BARRIDO DE SEDA (Elegante, no Navidad) */
+.logo-container-fhd {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.logo-fhd-glow {
+    height: 80px; /* Ajusta según el tamaño de tu logo */
+    width: auto;
+    filter: drop-shadow(0 0 12px rgba(255,255,255,0.1));
+}
+
+/* La línea de luz que cruza */
+.logo-container-fhd::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -200%;
+    width: 100%;
+    height: 100%;
+    /* Un degradado muy fino y difuminado */
+    background: linear-gradient(
+        to right, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0) 30%, 
+        rgba(255, 255, 255, 0.5) 50%, 
+        rgba(255, 255, 255, 0) 70%, 
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    transition: none;
+    animation: sweep-light 6s infinite; /* Más lento para que sea elegante */
+}
+
+@keyframes sweep-light {
+    0% { left: -200%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+}
+
+/* BARRA ACERO MATE PROFUNDO */
+.nav-steel-fhd {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    backdrop-blur: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* --- ESTILO FLOTANTE DE FACEBOOK (Círculo Premium) --- */
+.fb-float-circle {
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.fb-float-circle:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 15px 30px rgba(24, 119, 242, 0.4);
+}
+
+/* Efecto de Pulso de Radar */
+.fb-pulse::after {
+    content: "";
+    position: absolute;
+    inset: -5px; /* Pequeño desfase hacia afuera */
+    border-radius: 50%;
+    border: 2px solid rgba(24, 119, 242, 0.6);
+    animation: fb-radar 2.5s infinite;
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes fb-radar {
+    0% { transform: scale(1); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+/* ESTILOS DEL FOOTER PREMIUM */
+.footer-glass {
+    background: linear-gradient(to bottom, #0f172a, #020617);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.trust-badge-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-blur: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.trust-badge-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateY(-5px);
+}
+
+.logo-footer-fade {
+    filter: saturate(0.8) brightness(0.8);
+    opacity: 0.4; /* Transparencia sugerida */
+    transition: opacity 0.5s ease;
+}
+
+.logo-footer-fade:hover {
+    opacity: 0.8; /* Se aclara al pasar el mouse */
+}
     </style>
 </head>
 <body class="bg-[#fafafb] text-slate-900" x-data="shop" x-init="init()" x-cloak>
@@ -75,17 +176,24 @@
         <i class="fa-solid fa-paw paw-icon text-[85px]" style="left: 85%; animation-delay: 3s; color: #6366f1;"></i>
     </div>
 
-    <nav class="sticky top-0 z-[100] bg-white/70 backdrop-blur-2xl border-b border-slate-100">
-        <div class="max-w-7xl mx-auto px-6 md:px-8 py-4 flex justify-between items-center w-full">
-            <div class="flex items-center group cursor-pointer" @click="window.location.reload()">
-                <img src="https://lh3.googleusercontent.com/d/1a34N4zgyMheifxMszHn4rE6EERoxqYW7" alt="Logo" class="h-32 w-auto transition-all duration-500 group-hover:scale-105 drop-shadow-sm">
-            </div>
-            <button @click="cartOpen = true" class="relative p-3 group transition-all active:scale-90">
-                <i class="fa-solid fa-bag-shopping text-3xl md:text-4xl text-slate-950 group-hover:text-indigo-600 transition-colors"></i>
-                <span x-show="cart.length > 0" x-text="cart.length" class="absolute top-1 right-1 bg-rose-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-lg animate-bounce"></span>
-            </button>
+   <nav class="sticky top-0 z-[100] nav-steel-fhd shadow-2xl">
+    <div class="max-w-7xl mx-auto px-6 md:px-8 py-3 flex justify-between items-center w-full">
+        
+        <div class="cursor-pointer" @click="window.location.reload()">
+            <img src="https://lh3.googleusercontent.com/d/1a34N4zgyMheifxMszHn4rE6EERoxqYW7" 
+     alt="Logo" 
+     class="h-[104px] md:h-[125px] w-auto transition-transform hover:scale-105">
         </div>
-    </nav>
+
+        <button @click="cartOpen = true" class="relative p-3 group">
+            <i class="fa-solid fa-bag-shopping text-3xl text-white group-hover:text-blue-300 transition-colors"></i>
+            <span x-show="cart.length > 0" x-text="cart.length" 
+                  class="absolute top-1 right-1 bg-rose-600 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-slate-900 shadow-lg">
+            </span>
+        </button>
+
+    </div>
+</nav>
 
     <main class="max-w-7xl mx-auto px-8 py-16 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-24">
@@ -120,74 +228,136 @@
     </div>
 </section>
     </main>
-<footer class="bg-white border-t border-slate-100 pt-20 pb-10 relative z-20">
-    <div class="max-w-7xl mx-auto px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-            
-            <div class="space-y-6">
-                <img src="https://lh3.googleusercontent.com/d/19qz58NMvk5p3lGljj-Kz3o9Xwd8jhJ8p" alt="PetSmart Logo" class="h-20 w-auto grayscale brightness-0">
-                <p class="text-slate-500 text-sm leading-relaxed font-medium">
-                    Elevando el estándar de viaje para los que más amas. Transportadores premium diseñados para la seguridad y el estilo de tu mascota.
-                </p>
-                <div class="flex gap-4">
-                    <a href="https://www.facebook.com/PetSmart.oficial/" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all"><i class="fa-brands fa-tiktok"></i></a>
+<footer class="footer-glass pt-16 pb-8 mt-20 px-4 md:px-6 relative z-20">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-7xl mx-auto">
+        <div class="trust-badge-card p-6 rounded-[30px] flex items-center gap-4">
+            <div class="w-10 h-10 bg-sky-500/20 rounded-full flex items-center justify-center text-sky-400">
+                <i class="fa-solid fa-shield-halved text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-white text-xs font-black uppercase tracking-widest">Compra Segura</h4>
+                <p class="text-[10px] text-slate-500 font-bold uppercase">Protección total</p>
+            </div>
+        </div>
+
+        <div class="trust-badge-card p-6 rounded-[30px] flex items-center gap-4">
+            <div class="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
+                <i class="fa-solid fa-truck-fast text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-white text-xs font-black uppercase tracking-widest">Envío Express</h4>
+                <p class="text-[10px] text-slate-500 font-bold uppercase">Todo el Perú</p>
+            </div>
+        </div>
+
+        <div class="trust-badge-card p-6 rounded-[30px] flex items-center gap-4">
+            <div class="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-400">
+                <i class="fa-solid fa-star text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-white text-xs font-black uppercase tracking-widest">Calidad Premium</h4>
+                <p class="text-[10px] text-slate-500 font-bold uppercase">Solo lo mejor</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center space-y-10 border-b border-white/5 pb-12">
+        <img src="https://lh3.googleusercontent.com/d/1a34N4zgyMheifxMszHn4rE6EERoxqYW7" alt="PetSmart Logo" class="h-20 w-auto logo-footer-fade">
+
+        <div class="text-center">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6">Aceptamos transferencia directa</p>
+            <div class="flex items-center gap-8 justify-center">
+                <div class="flex flex-col items-center gap-3 group cursor-pointer">
+                    <div class="w-16 h-16 bg-[#742484] rounded-2xl flex items-center justify-center shadow-2xl p-3 transition-all group-hover:scale-110">
+                        <img src="https://lh3.googleusercontent.com/d/1j9RFgid6qnuiLWb4dUHlgnRAvOXYHREb" alt="Yape" class="w-full h-full object-contain">
+                    </div>
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Yape</span>
+                </div>
+                <div class="flex flex-col items-center gap-3 group cursor-pointer">
+                    <div class="w-16 h-16 bg-[#fbba00] rounded-2xl flex items-center justify-center shadow-2xl p-3 border-b-4 border-[#002a8d] transition-all group-hover:scale-110">
+                        <img src="https://lh3.googleusercontent.com/d/1nRhawnGfx7yP8HJGGMg-XU_fjTC6OMEF" alt="BCP" class="w-full h-full object-contain">
+                    </div>
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">BCP</span>
                 </div>
             </div>
-
-            <div>
-                <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-8 italic">Explorar</h4>
-                <ul class="space-y-4">
-                    <li><a href="#" class="text-slate-900 font-black italic uppercase text-xs hover:text-indigo-600 transition-colors tracking-tighter">Nuestras Tallas</a></li>
-                    <li><a href="#" class="text-slate-900 font-black italic uppercase text-xs hover:text-indigo-600 transition-colors tracking-tighter">Clientes Felices</a></li>
-                </ul>
-            </div>
-                    <p class="mt-6 text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-                    Entregas garantizadas en Lima <br> en 24 - 48 horas.
-                </p>
-            </div>
         </div>
+    </div>
 
-        <div class="pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em]">© 2026 PETSMART PERÚ - TODOS LOS DERECHOS RESERVADOS</p>
-            <div class="flex items-center gap-2">
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Desarrollado por PetSmart</span>
-                <i class="fa-solid fa-heart text-rose-500 text-[10px]"></i>
-            </div>
-        </div>
+    <div class="pt-8 text-center">
+        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+            © 2026 <span class="text-slate-400">PetSmart</span>. Todos los derechos reservados.
+        </p>
+        <p class="text-[8px] text-slate-700 font-black mt-2 uppercase tracking-[0.5em]">
+            Desarrollado por CONHUA
+        </p>
     </div>
 </footer>
     <div x-show="modalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-lg" @click="modalOpen = false"></div>
-        <div x-show="selectedProduct" class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all">
-            <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-12 relative">
-                <img :src="selectedVariant?.imagenColor" :style="'width:' + selectedProduct?.imgSizeModal" class="object-contain drop-shadow-3xl transition-all duration-500">
-                <button @click.stop="openVideoModal(selectedProduct.videoUrl)" class="absolute bottom-10 left-10 bg-white/90 backdrop-blur p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 border border-white hover:bg-indigo-600 hover:text-white transition-all shadow-xl">
-                    <i class="fa-solid fa-circle-play text-xl"></i> Ver Video Demo
-                </button>
+    <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-lg" @click="modalOpen = false"></div>
+    
+    <div x-show="selectedProduct" class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all">
+        <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-12 relative">
+    <img :src="selectedVariant?.imagenColor" 
+         :style="'width:' + selectedProduct?.imgSizeModal" 
+         class="object-contain drop-shadow-3xl transition-all duration-500 relative z-10">
+
+    <template x-if="selectedProduct && selectedProduct.videoUrl">
+        <button @click.stop="window.open(selectedProduct.videoUrl, '_blank')" 
+            class="absolute bottom-6 left-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 border border-slate-200 hover:bg-indigo-600 hover:text-white transition-all shadow-2xl z-50 group">
+            
+            <i class="fa-solid fa-circle-play text-xl text-indigo-600 group-hover:text-white"></i> 
+            <div class="flex flex-col items-start leading-tight">
+                <span class="text-slate-400 group-hover:text-indigo-100 text-[8px]">Video Referencial</span>
+                <span x-text="selectedProduct.name"></span>
             </div>
-            <div class="p-12 lg:w-1/2 flex flex-col justify-center bg-white space-y-6">
-                <h2 class="text-5xl font-black text-slate-950 uppercase italic tracking-tighter" x-text="selectedProduct?.name"></h2>
-                <p class="text-slate-500 font-medium" x-text="selectedProduct?.desc"></p>
-                <div class="space-y-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Colección de Colores (Desliza)</p>
-                    <div class="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x px-2 -mx-2">
-                        <template x-for="variant in selectedProduct?.variants" :key="variant.nombreColor">
-                            <button @click="selectedVariant = variant" :class="selectedVariant === variant ? 'color-selected' : 'opacity-30'" class="flex-shrink-0 w-20 h-20 rounded-[30px] border-2 border-slate-100 overflow-hidden bg-white snap-center p-1 transition-all">
-                                <img :src="variant.thumbnailColor" class="w-full h-full object-contain">
-                            </button>
-                        </template>
-                    </div>
-                </div>
-                <div class="bg-slate-50 p-8 rounded-[40px] flex justify-between items-center border border-slate-50 mt-8">
-                    <span class="text-5xl font-black text-slate-950 italic" x-text="'S/ ' + selectedProduct?.price"></span>
-                    <button @click="addToCartWithColor($event)" class="bg-indigo-600 text-white px-10 py-5 rounded-3xl font-black shadow-2xl hover:bg-indigo-700 active:scale-95 transition-all text-xs uppercase tracking-[0.2em]">Añadir +</button>
+        </button>
+    </template>
+</div>
+
+        <div class="p-12 lg:w-1/2 flex flex-col justify-center bg-white space-y-6">
+            <h2 class="text-5xl font-black text-slate-950 uppercase italic tracking-tighter" x-text="selectedProduct?.name"></h2>
+            <p class="text-slate-500 font-medium" x-html="selectedProduct?.desc"></p>
+            
+            <div class="space-y-4">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Colección de Colores (Desliza)</p>
+                <div class="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x px-2 -mx-2">
+                    <template x-for="variant in selectedProduct?.variants" :key="variant.nombreColor">
+                        <button @click="selectedVariant = variant" 
+                            :class="selectedVariant === variant ? 'color-selected' : (variant.stock === 0 ? 'opacity-20 grayscale' : 'opacity-30')" 
+                            class="relative flex-shrink-0 w-20 h-20 rounded-[30px] border-2 border-slate-100 overflow-hidden bg-white snap-center p-1 transition-all">
+                            
+                            <img :src="variant.thumbnailColor" class="w-full h-full object-contain">
+                            
+                            <template x-if="variant.stock === 0">
+                                <div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center">
+                                    <span class="text-[8px] text-white font-black uppercase tracking-tighter">Agotado</span>
+                                </div>
+                            </template>
+                        </button>
+                    </template>
                 </div>
             </div>
-            <button @click="modalOpen = false" class="absolute top-10 right-10 text-slate-300 text-4xl hover:text-rose-500 font-light transition-colors">×</button>
+
+            <div class="bg-slate-50 p-8 rounded-[40px] flex justify-between items-center border border-slate-50 mt-8">
+                <span class="text-5xl font-black text-slate-950 italic" x-text="'S/ ' + selectedProduct?.price"></span>
+                
+                <button @click="addToCartWithColor($event)" 
+    :disabled="!selectedVariant || selectedVariant.stock === 0 || (selectedVariant.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor))"
+    :class="(selectedVariant?.stock === 0 || (selectedVariant?.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor))) 
+            ? 'bg-slate-300 cursor-not-allowed opacity-60' 
+            : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'"
+    class="text-white px-10 py-5 rounded-3xl font-black shadow-2xl transition-all text-xs uppercase tracking-[0.2em]">
+    
+    <span x-text="(selectedVariant?.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor)) 
+                ? 'Ya en Carrito' 
+                : (selectedVariant?.stock === 0 ? 'Sin Stock' : 'Añadir +')"></span>
+</button>
+            </div>
         </div>
+
+        <button @click="modalOpen = false" class="absolute top-10 right-10 text-slate-300 text-4xl hover:text-rose-500 font-light transition-colors">×</button>
     </div>
+</div>
 
     <div x-show="cartOpen" class="fixed inset-0 z-[300]" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" @click="cartOpen = false"></div>
@@ -247,33 +417,53 @@
     </div>
 
     <div x-show="qrYapeOpen" class="fixed inset-0 z-[400] flex items-center justify-center p-6" x-transition.opacity>
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" @click="qrYapeOpen = false"></div>
-        <div class="bg-white w-full max-w-sm rounded-[45px] overflow-hidden relative shadow-3xl p-10 text-center">
-            <div class="flex flex-col items-center mb-8">
-                <div class="bg-yape w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg mb-4 shadow-purple-500/30"><i class="fa-solid fa-bolt-lightning text-white text-2xl"></i></div>
-                <h3 class="text-2xl font-black text-slate-950 italic tracking-tighter uppercase">Pago con Yape</h3>
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" @click="qrYapeOpen = false"></div>
+    
+    <div class="bg-white w-full max-w-sm rounded-[45px] overflow-hidden relative shadow-3xl p-10 text-center">
+        <div class="flex flex-col items-center mb-8">
+            <div class="bg-yape w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg mb-4 shadow-purple-500/30">
+                <i class="fa-solid fa-bolt-lightning text-white text-2xl"></i>
             </div>
-            <div class="bg-slate-50 border border-slate-100 rounded-[40px] p-8 mb-8 relative shadow-inner">
-                <img src="https://lh3.googleusercontent.com/d/1R2QQ-IPMyFVSbjx6idOIYQ8F6LMYcErX" class="w-full aspect-square object-contain mix-blend-multiply">
-            </div>
-            <div class="space-y-1 mb-8">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total a Yapear</p>
-                <p class="text-5xl font-black italic text-slate-950" x-text="'S/ ' + total"></p>
-                <p class="text-[10.5px] font-black text-yape uppercase tracking-widest pt-2 italic">A nombre de: Milagros Huamani Huaman</p>
-            </div>
-            <button @click="sendWhatsApp" class="w-full bg-[#25d366] text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">Enviar Comprobante</button>
+            <h3 class="text-2xl font-black text-slate-950 italic tracking-tighter uppercase">Pago con Yape</h3>
         </div>
+
+        <div class="bg-slate-50 border border-slate-100 rounded-[40px] p-8 mb-4 relative shadow-inner">
+            <img src="https://lh3.googleusercontent.com/d/1R2QQ-IPMyFVSbjx6idOIYQ8F6LMYcErX" class="w-full aspect-square object-contain mix-blend-multiply">
+        </div>
+
+        <div class="text-center mb-8">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Número de celular</p>
+            <p class="text-3xl font-black text-slate-950 tracking-widest">984 464 009</p>
+        </div>
+
+        <div class="space-y-1 mb-8">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total a Yapear</p>
+            <p class="text-5xl font-black italic text-slate-950" x-text="'S/ ' + total"></p>
+            <p class="text-[10.5px] font-black text-yape uppercase tracking-widest pt-2 italic">A nombre de: Milagros Huamani Huaman</p>
+        </div>
+
+        <button @click="sendWhatsApp" class="w-full bg-[#25d366] text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+            Enviar Comprobante
+        </button>
+    </div> </div> <a href="https://wa.me/51984464009" target="_blank" class="fixed bottom-10 right-10 z-[150] flex items-center gap-4 bg-white p-3 pr-10 rounded-full shadow-3xl border border-slate-50 group hover:scale-105 transition-all">
+    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-indigo-100">
+        <img src="https://lh3.googleusercontent.com/d/1UopNjqepiWMC2Q_GqSjNJskRFj3LnCwg" class="w-full h-full object-cover rounded-full">
     </div>
+    <div class="flex flex-col">
+        <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest leading-none">PetSmart</span>
+        <span class="text-xl font-black italic text-slate-900 tracking-tighter">Chat con Asesor</span>
+    </div>
+</a>
 
-    <a href="https://wa.me/51984464009" target="_blank" class="fixed bottom-10 right-10 z-[150] flex items-center gap-4 bg-white p-3 pr-10 rounded-full shadow-3xl border border-slate-50 group hover:scale-105 transition-all">
-        <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-indigo-100"><img src="https://lh3.googleusercontent.com/d/1UopNjqepiWMC2Q_GqSjNJskRFj3LnCwg" class="w-full h-full object-cover rounded-full"></div>
-        <div class="flex flex-col"><span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest leading-none">PetSmart</span><span class="text-xl font-black italic text-slate-900 tracking-tighter">Chat con Asesor</span></div>
-    </a>
-
-    <a href="https://www.facebook.com/PetSmart.oficial/" target="_blank" class="fixed bottom-10 left-10 z-[150] w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-3xl border border-slate-50 text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition-all">
-        <i class="fa-brands fa-facebook-f text-2xl"></i>
-    </a>
-
+<button @click="goToFacebook()" 
+    class="fixed top-[140px] left-8 z-[150] w-16 h-16 bg-[#1877F2] text-white rounded-full shadow-2xl flex items-center justify-center fb-float-circle fb-pulse group"
+    title="Síguenos en Facebook">
+    <i class="fa-brands fa-facebook-f text-2xl group-hover:animate-bounce"></i>
+</button>
+<button @click="deliveryModalOpen = true" class="fixed bottom-32 left-10 z-[150] flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-full shadow-3xl hover:scale-105 transition-all group">
+    <i class="fa-solid fa-truck-fast text-xl animate-pulse"></i>
+    <span class="text-[10px] font-black uppercase tracking-widest pr-2">Envío Express</span>
+</button>
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('shop', () => ({
@@ -293,16 +483,21 @@
 
                 distritos: [ { nombre: 'Miraflores', envio: 10 }, { nombre: 'Surco', envio: 10 }, { nombre: 'S.J.M.', envio: 8 }, { nombre: 'VMT.', envio: 8 } ],
                 estaciones: [ { nombre: 'Estación Angamos', envio: 5 }, { nombre: 'Estación Atocongo', envio: 5 }, { nombre: 'Estación La Cultura', envio: 5 }],
+                deliveryModalOpen: false,
+deliveryForm: { nombre: '', dni: '', agencia: '', departamento: '', whatsapp: '' },
+departamentosPeru: ['Amazonas','Ancash','Apurímac','Arequipa','Ayacucho','Cajamarca','Callao','Cusco','Huancavelica','Huánuco','Ica','Junín','La Libertad','Lambayeque','Lima','Loreto','Madre de Dios','Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'],
 
                 products: [
                     { 
-                        id: 1, name: 'Talla S', price: 36, desc: 'Soporta Hasta 6kg.',
+                        id: 1, name: 'Talla S', price: 36, desc: '<b>Medidas:</b> <span class="text-sky-500 font-bold">28cm Largo x 19cm Alto x 22cm Ancho.</span>. <br> <b>Soporta Hasta 6kg</b>,<b>Asa Reforzada</b>,<b>Mallas Laterales, Frontal y Posterior.</b>',
                         imgSize: '140%', // TAMAÑO EN LA CUADRÍCULA (puedes poner 50%, 90%, etc)
                         imgSizeModal: '140%', // TAMAÑO EN EL MODAL
+                        videoUrl: 'https://drive.google.com/file/d/ID_DEL_VIDEO/preview',
                         variants: [
-                            { nombreColor: 'Modelo 1', imagenColor: 'https://lh3.googleusercontent.com/d/11cO82tttSk2WzGtyjI8sGnwQJEcZ16N4', thumbnailColor: 'https://lh3.googleusercontent.com/d/11cO82tttSk2WzGtyjI8sGnwQJEcZ16N4' },
-                            { nombreColor: 'Modelo 2', imagenColor: 'https://lh3.googleusercontent.com/d/1RFUNW2fkk9KE8Vi_cnXyKWSm512lpezX', thumbnailColor: 'https://lh3.googleusercontent.com/d/1RFUNW2fkk9KE8Vi_cnXyKWSm512lpezX' },
-                            { nombreColor: 'Modelo 3', imagenColor: 'https://lh3.googleusercontent.com/d/1xq2oGYazc0wGQMvEaE8R7-hGE8dMJXKt', thumbnailColor: 'https://lh3.googleusercontent.com/d/1xq2oGYazc0wGQMvEaE8R7-hGE8dMJXKt' },
+                            { nombreColor: 'Morado', imagenColor: 'https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l', thumbnailColor: 'https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l', stock: 1 },
+                            { nombreColor: 'Azul con Diseño', imagenColor: 'https://lh3.googleusercontent.com/d/1YhPZChRWNjKH_IHy7v0iqX-PdXOzfv-6', thumbnailColor: 'https://lh3.googleusercontent.com/d/1YhPZChRWNjKH_IHy7v0iqX-PdXOzfv-6', stock: 1 },
+                            { nombreColor: 'Verde con diseño', imagenColor: 'https://lh3.googleusercontent.com/d/1ggiiMd8M4t3BcsTWuydvJYGZbyyjotaU', thumbnailColor: 'https://lh3.googleusercontent.com/d/1ggiiMd8M4t3BcsTWuydvJYGZbyyjotaU', stock: 1 },
+                            { nombreColor: 'Rojo con Cuadritos', imagenColor: 'https://lh3.googleusercontent.com/d/1fp3aTRXPXhr5qjQRyfzw47Xx8lJKeiEV', thumbnailColor: 'https://lh3.googleusercontent.com/d/1fp3aTRXPXhr5qjQRyfzw47Xx8lJKeiEV', stock: 1 },
                             //{ nombreColor: 'Modelo 4', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 5', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 6', imagenColor: 'LINK', thumbnailColor: 'LINK' },
@@ -313,14 +508,15 @@
                         ]
                     },
                     { 
-                        id: 2, name: 'Talla M', price: 44, desc: 'Soporta Hasta 9kg.',
+                        id: 2, name: 'Talla M', price: 44, desc: '<b>Medidas:</b> <span class="text-sky-500 font-bold">36.5cm Largo x 23cm Alto x 24cm Ancho.</span>. <br> <b>Soporta Hasta 9kg</b>,<b>Asa Reforzada</b>,<b>Mallas Laterales, Frontal y Posterior.</b>',
                         imgSize: '120%', 
                         imgSizeModal: '120%',
+                        videoUrl: 'https://drive.google.com/file/d/ID_DEL_VIDEO/preview',
                         variants: [
-                            { nombreColor: 'Modelo 1', imagenColor: 'https://lh3.googleusercontent.com/d/1ZKz8Fm8k12-1JB28_l9Sy7xmYpiE1GCD', thumbnailColor: 'https://lh3.googleusercontent.com/d/1ZKz8Fm8k12-1JB28_l9Sy7xmYpiE1GCD' },
-                            { nombreColor: 'Modelo 2', imagenColor: 'https://lh3.googleusercontent.com/d/1e-QC2IjYio7JmwtqR4ui777rn8WcB6hJ', thumbnailColor: 'https://lh3.googleusercontent.com/d/1e-QC2IjYio7JmwtqR4ui777rn8WcB6hJ' },
-                            { nombreColor: 'Modelo 3', imagenColor: 'https://lh3.googleusercontent.com/d/1L53j8wvbrk1YIscoOWcI-ucn2jTDh0GR', thumbnailColor: 'https://lh3.googleusercontent.com/d/1L53j8wvbrk1YIscoOWcI-ucn2jTDh0GR' },
-                            { nombreColor: 'Modelo 4', imagenColor: 'https://lh3.googleusercontent.com/d/1AmyEQ9YjYAdEybQ2dkhTTZOMBYyx2zeS', thumbnailColor: 'https://lh3.googleusercontent.com/d/1AmyEQ9YjYAdEybQ2dkhTTZOMBYyx2zeS' },
+                            { nombreColor: 'Rojo con Cuadritos sin tapa', imagenColor: 'https://lh3.googleusercontent.com/d/1pdA5aP0vZikiF9ORO8ahv3WTCh88hY_g', thumbnailColor: 'https://lh3.googleusercontent.com/d/1pdA5aP0vZikiF9ORO8ahv3WTCh88hY_g', stock: 1 },
+                            { nombreColor: 'Rojo sin tapa', imagenColor: 'https://lh3.googleusercontent.com/d/1ZHkhE3BW-XnzLDRJZSLWX-Zn4ksXUKg1', thumbnailColor: 'https://lh3.googleusercontent.com/d/1ZHkhE3BW-XnzLDRJZSLWX-Zn4ksXUKg1', stock: 1 },
+                            { nombreColor: 'Morado con tapa', imagenColor: 'https://lh3.googleusercontent.com/d/1Mgp9xvTLG7TlLpvdRSEiRFqUw5L0QwnB', thumbnailColor: 'https://lh3.googleusercontent.com/d/1Mgp9xvTLG7TlLpvdRSEiRFqUw5L0QwnB', stock: 1 },
+                            { nombreColor: 'Modelo 4', imagenColor: 'https://lh3.googleusercontent.com/d/1AmyEQ9YjYAdEybQ2dkhTTZOMBYyx2zeS', thumbnailColor: 'https://lh3.googleusercontent.com/d/1AmyEQ9YjYAdEybQ2dkhTTZOMBYyx2zeS', stock: 1 },
                             //{ nombreColor: 'Modelo 5', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 6', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 7', imagenColor: 'LINK', thumbnailColor: 'LINK' },
@@ -334,13 +530,13 @@
                         imgSize: '100%', 
                         imgSizeModal: '100%',
                         variants: [
-                            { nombreColor: 'Modelo 1', imagenColor: 'https://lh3.googleusercontent.com/d/19MkawFi3Ug41ziMOdzg4m5ksGjtBvG0W', thumbnailColor: 'https://lh3.googleusercontent.com/d/19MkawFi3Ug41ziMOdzg4m5ksGjtBvG0W' },
-                            { nombreColor: 'Modelo 2', imagenColor: 'https://lh3.googleusercontent.com/d/1VbIGLyzWdiupgl-OhTKbJNwDkopntaxk', thumbnailColor: 'https://lh3.googleusercontent.com/d/1VbIGLyzWdiupgl-OhTKbJNwDkopntaxk' },
-                            { nombreColor: 'Modelo 3', imagenColor: 'https://lh3.googleusercontent.com/d/1th6kU8vMDFQLgn54E9Hi6IS2tn1-Yhhv', thumbnailColor: 'https://lh3.googleusercontent.com/d/1th6kU8vMDFQLgn54E9Hi6IS2tn1-Yhhv' },
-                            { nombreColor: 'Modelo 4', imagenColor: 'https://lh3.googleusercontent.com/d/1Sr8EoviaeEaoWQMGcUPOBotvrge7N-Af', thumbnailColor: 'https://lh3.googleusercontent.com/d/1Sr8EoviaeEaoWQMGcUPOBotvrge7N-Af' },
-                            { nombreColor: 'Modelo 5', imagenColor: 'https://lh3.googleusercontent.com/d/1gBtkUdzh8pydGwvdFB22QkXvIxhTUhU3', thumbnailColor: 'https://lh3.googleusercontent.com/d/1gBtkUdzh8pydGwvdFB22QkXvIxhTUhU3' },
-                            { nombreColor: 'Modelo 6', imagenColor: 'https://lh3.googleusercontent.com/d/1YXFQcpJ81hbl8htjOVdLcB4nytdKxsS0', thumbnailColor: 'https://lh3.googleusercontent.com/d/1YXFQcpJ81hbl8htjOVdLcB4nytdKxsS0' },
-                            { nombreColor: 'Modelo 7', imagenColor: 'https://lh3.googleusercontent.com/d/1358-aXh0TUSVfx1Hy1jS_W0z6LtVI6WU', thumbnailColor: 'https://lh3.googleusercontent.com/d/1358-aXh0TUSVfx1Hy1jS_W0z6LtVI6WU' },
+                            { nombreColor: 'Modelo 1', imagenColor: 'https://lh3.googleusercontent.com/d/19MkawFi3Ug41ziMOdzg4m5ksGjtBvG0W', thumbnailColor: 'https://lh3.googleusercontent.com/d/19MkawFi3Ug41ziMOdzg4m5ksGjtBvG0W', stock: 1 },
+                            { nombreColor: 'Modelo 2', imagenColor: 'https://lh3.googleusercontent.com/d/1VbIGLyzWdiupgl-OhTKbJNwDkopntaxk', thumbnailColor: 'https://lh3.googleusercontent.com/d/1VbIGLyzWdiupgl-OhTKbJNwDkopntaxk', stock: 1 },
+                            { nombreColor: 'Modelo 3', imagenColor: 'https://lh3.googleusercontent.com/d/1th6kU8vMDFQLgn54E9Hi6IS2tn1-Yhhv', thumbnailColor: 'https://lh3.googleusercontent.com/d/1th6kU8vMDFQLgn54E9Hi6IS2tn1-Yhhv', stock: 1 },
+                            { nombreColor: 'Modelo 4', imagenColor: 'https://lh3.googleusercontent.com/d/1Sr8EoviaeEaoWQMGcUPOBotvrge7N-Af', thumbnailColor: 'https://lh3.googleusercontent.com/d/1Sr8EoviaeEaoWQMGcUPOBotvrge7N-Af', stock: 1 },
+                            { nombreColor: 'Modelo 5', imagenColor: 'https://lh3.googleusercontent.com/d/1gBtkUdzh8pydGwvdFB22QkXvIxhTUhU3', thumbnailColor: 'https://lh3.googleusercontent.com/d/1gBtkUdzh8pydGwvdFB22QkXvIxhTUhU3', stock: 1 },
+                            { nombreColor: 'Modelo 6', imagenColor: 'https://lh3.googleusercontent.com/d/1YXFQcpJ81hbl8htjOVdLcB4nytdKxsS0', thumbnailColor: 'https://lh3.googleusercontent.com/d/1YXFQcpJ81hbl8htjOVdLcB4nytdKxsS0', stock: 1 },
+                            { nombreColor: 'Modelo 7', imagenColor: 'https://lh3.googleusercontent.com/d/1358-aXh0TUSVfx1Hy1jS_W0z6LtVI6WU', thumbnailColor: 'https://lh3.googleusercontent.com/d/1358-aXh0TUSVfx1Hy1jS_W0z6LtVI6WU', stock: 1 },
                             //{ nombreColor: 'Modelo 8', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 9', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 10', imagenColor: 'LINK', thumbnailColor: 'LINK' }
@@ -351,10 +547,10 @@
                         imgSize: '100%', 
                         imgSizeModal: '100%',
                         variants: [
-                            { nombreColor: 'Modelo 1', imagenColor: 'https://lh3.googleusercontent.com/d/1-HAhgdEWxjor1cAvMRQFJLPmK9bRfG9N', thumbnailColor: 'https://lh3.googleusercontent.com/d/1-HAhgdEWxjor1cAvMRQFJLPmK9bRfG9N' },
-                            { nombreColor: 'Modelo 2', imagenColor: 'https://lh3.googleusercontent.com/d/1XN09HvahK3IVnF_REqQo7iofl60wcgU_', thumbnailColor: 'https://lh3.googleusercontent.com/d/1XN09HvahK3IVnF_REqQo7iofl60wcgU_' },
-                            { nombreColor: 'Modelo 3', imagenColor: 'https://lh3.googleusercontent.com/d/11-tV0b5_-GLOOQlWa_qosKlZAaubjULV', thumbnailColor: 'https://lh3.googleusercontent.com/d/11-tV0b5_-GLOOQlWa_qosKlZAaubjULV' },
-                            { nombreColor: 'Modelo 4', imagenColor: 'https://lh3.googleusercontent.com/d/1Wn3jaSOQsnWA3-0WhKEniLchHCDJBOBo', thumbnailColor: 'https://lh3.googleusercontent.com/d/1Wn3jaSOQsnWA3-0WhKEniLchHCDJBOBo' },
+                            { nombreColor: 'Modelo 1', imagenColor: 'https://lh3.googleusercontent.com/d/1-HAhgdEWxjor1cAvMRQFJLPmK9bRfG9N', thumbnailColor: 'https://lh3.googleusercontent.com/d/1-HAhgdEWxjor1cAvMRQFJLPmK9bRfG9N', stock: 1 },
+                            { nombreColor: 'Modelo 2', imagenColor: 'https://lh3.googleusercontent.com/d/1XN09HvahK3IVnF_REqQo7iofl60wcgU_', thumbnailColor: 'https://lh3.googleusercontent.com/d/1XN09HvahK3IVnF_REqQo7iofl60wcgU_', stock: 1 },
+                            { nombreColor: 'Modelo 3', imagenColor: 'https://lh3.googleusercontent.com/d/11-tV0b5_-GLOOQlWa_qosKlZAaubjULV', thumbnailColor: 'https://lh3.googleusercontent.com/d/11-tV0b5_-GLOOQlWa_qosKlZAaubjULV', stock: 1 },
+                            { nombreColor: 'Modelo 4', imagenColor: 'https://lh3.googleusercontent.com/d/1Wn3jaSOQsnWA3-0WhKEniLchHCDJBOBo', thumbnailColor: 'https://lh3.googleusercontent.com/d/1Wn3jaSOQsnWA3-0WhKEniLchHCDJBOBo', stock: 1 },
                             //{ nombreColor: 'Modelo 5', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 6', imagenColor: 'LINK', thumbnailColor: 'LINK' },
                             //{ nombreColor: 'Modelo 7', imagenColor: 'LINK', thumbnailColor: 'LINK' },
@@ -377,7 +573,17 @@ clientes: [
     // PARA SUBIR MÁS, SOLO COPIA Y PEGA LA LÍNEA DE ABAJO:
     //{ usuario: '@Nuevo_Cliente', url: 'LINK_DE_TU_FOTO_AQUI' },
 ],
+// Variable del audio
+messengerAudio: new Audio('https://www.soundjay.com/communication/sounds/messenger-tone-1.mp3'),
 
+// Función de redirección con sonido
+goToFacebook() {
+    this.messengerAudio.play();
+    setTimeout(() => {
+        // REEMPLAZA ESTE LINK POR EL REAL DE TU PÁGINA
+        window.open('https://www.facebook.com/PetSmart.oficial/', '_blank');
+    }, 500); 
+},
 // ... resto del código
 
 
@@ -416,10 +622,59 @@ clientes: [
                     const items = this.cart.map(i => `- ${i.name} (${i.selectedColorName})`).join('%0A');
                     const msg = `Hola PetSmart, pedido para el ${this.deliveryDate} en ${lugar}.%0A%0AItems:%0A${items}%0A%0ATotal a pagar: S/ ${this.total}`;
                     window.open(`https://wa.me/51984464009?text=${msg}`, '_blank'); 
-                }
+                },
+                sendDeliveryWhatsApp() {
+    let msg = `🚀 *SOLICITUD DE ENVÍO EXPRESS*%0A%0A`;
+    msg += `👤 *Nombre:* ${this.deliveryForm.nombre.toUpperCase()}%0A`;
+    msg += `🪪 *DNI:* ${this.deliveryForm.dni}%0A`;
+    msg += `🏢 *Agencia:* ${this.deliveryForm.agencia}%0A`;
+    msg += `📍 *Destino:* ${this.deliveryForm.departamento}%0A`;
+    msg += `📱 *WhatsApp:* ${this.deliveryForm.whatsapp}%0A%0A`;
+    msg += `_Quedo a la espera para coordinar el pago del producto._`;
+    
+    window.open(`https://wa.me/51984464009?text=${msg}`);
+    this.deliveryModalOpen = false;
+}
             }));
         });
         document.oncontextmenu = () => false;
     </script>
+    <div x-show="deliveryModalOpen" class="fixed inset-0 z-[500] flex items-center justify-center p-6" x-transition.opacity>
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" @click="deliveryModalOpen = false"></div>
+    <div class="bg-white w-full max-w-lg rounded-[45px] overflow-hidden relative shadow-3xl p-10">
+        <div class="text-center mb-8">
+            <i class="fa-solid fa-truck-ramp-box text-indigo-600 text-4xl mb-4"></i>
+            <h3 class="text-2xl font-black text-slate-950 italic tracking-tighter uppercase">Envío a Provincia</h3>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Datos obligatorios para despacho</p>
+        </div>
+
+        <form @submit.prevent="sendDeliveryWhatsApp" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" x-model="deliveryForm.nombre" placeholder="NOMBRE COMPLETO" required class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none">
+                <input type="number" x-model="deliveryForm.dni" placeholder="DNI" required class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black ring-1 ring-slate-100 focus:ring-indigo-500 outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <select x-model="deliveryForm.agencia" required class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none">
+                    <option value="">AGENCIA...</option>
+                    <option value="SHALOM">SHALOM</option>
+                    <option value="OLVA COURIER">OLVA COURIER</option>
+                </select>
+                <select x-model="deliveryForm.departamento" required class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none">
+                    <option value="">DEPARTAMENTO...</option>
+                    <template x-for="dep in departamentosPeru" :key="dep">
+                        <option :value="dep" x-text="dep"></option>
+                    </template>
+                </select>
+            </div>
+
+            <input type="tel" x-model="deliveryForm.whatsapp" placeholder="NÚMERO WHATSAPP" required class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black ring-1 ring-slate-100 focus:ring-indigo-500 outline-none">
+
+            <button type="submit" class="w-full bg-indigo-600 text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                Enviar a WhatsApp para Coordinar
+            </button>
+        </form>
+    </div>
+</div>
 </body>
 </html>
