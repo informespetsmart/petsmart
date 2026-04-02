@@ -200,7 +200,11 @@
             <template x-for="product in products" :key="product.id">
                 <div class="bg-white rounded-[50px] border border-slate-100 p-2 hover:shadow-3xl transition-all duration-700 group cursor-pointer" @click="openModal(product)">
                     <div class="h-72 bg-slate-50/50 rounded-[45px] flex items-center justify-center p-8 mb-6 overflow-hidden">
-                        <img :src="product.variants[0].imagenColor" :style="'width:' + product.imgSize" class="object-contain group-hover:scale-110 transition-transform duration-700">
+                       /*cambiar el tamaño de imagen para movil*/
+                       <img :src="product.variants[0].imagenColor" 
+     :style="'width:' + product.imgSize" 
+     class="h-full max-h-[220px] md:max-h-full object-contain group-hover:scale-110 transition-transform duration-700">
+     */
                     </div>
                     <div class="px-6 pb-8 text-center">
                         <h3 x-text="product.name" class="text-3xl font-black text-slate-950 uppercase italic tracking-tighter mb-4"></h3>
@@ -296,10 +300,10 @@
     <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-lg" @click="modalOpen = false"></div>
     
     <div x-show="selectedProduct" class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all">
-        <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-12 relative">
+     <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-12 relative">
     <img :src="selectedVariant?.imagenColor" 
          :style="'width:' + selectedProduct?.imgSizeModal" 
-         class="object-contain drop-shadow-3xl transition-all duration-500 relative z-10">
+         class="max-h-[300px] lg:max-h-full object-contain drop-shadow-3xl transition-all duration-500 relative z-10">
 
     <template x-if="selectedProduct && selectedProduct.videoUrl">
         <button @click.stop="window.open(selectedProduct.videoUrl, '_blank')" 
