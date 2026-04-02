@@ -198,13 +198,14 @@
     <main class="max-w-7xl mx-auto px-8 py-16 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-24">
             <template x-for="product in products" :key="product.id">
-                <div class="bg-white rounded-[50px] border border-slate-100 p-2 hover:shadow-3xl transition-all duration-700 group cursor-pointer" @click="openModal(product)">
-                    <div class="aspect-square bg-slate-50/50 rounded-[45px] flex items-center justify-center p-4 mb-6 overflow-hidden">
-    <img :src="product.variants[0].imagenColor" 
-         style="width: 100%; height: 100%;" 
-         class="object-contain group-hover:scale-110 transition-transform duration-700">
-</div>
-                    <div class="px-6 pb-8 text-center">
+    <div class="bg-white rounded-[50px] border border-slate-100 p-2 hover:shadow-3xl transition-all duration-700 group cursor-pointer" @click="openModal(product)">
+        
+        <div class="relative w-full aspect-square bg-slate-50/50 rounded-[45px] flex items-center justify-center p-4 mb-4 overflow-hidden">
+            <img :src="product.variants[0].imagenColor" 
+                 class="max-h-full w-full object-contain group-hover:scale-110 transition-transform duration-700">
+        </div>
+        <div class="px-6 pb-8 text-center">
+            ...
     <h3 x-text="product.name" class="text-xl font-black text-slate-950 uppercase italic tracking-tighter mb-2"></h3>
     <button class="w-full bg-slate-950 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200">Ver Catálogo</button>
 </div>
