@@ -199,17 +199,15 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-24">
             <template x-for="product in products" :key="product.id">
                 <div class="bg-white rounded-[50px] border border-slate-100 p-2 hover:shadow-3xl transition-all duration-700 group cursor-pointer" @click="openModal(product)">
-                    <div class="h-72 bg-slate-50/50 rounded-[45px] flex items-center justify-center p-8 mb-6 overflow-hidden">
-
-                       <img :src="product.variants[0].imagenColor" 
-     :style="'width:' + product.imgSize" 
-     class="h-full max-h-[220px] md:max-h-full object-contain group-hover:scale-110 transition-transform duration-700">
-
-                    </div>
+                    <div class="h-64 md:h-72 bg-slate-50/50 rounded-[45px] flex items-center justify-center p-2 md:p-8 mb-6 overflow-hidden">
+                    <img :src="product.variants[0].imagenColor" 
+                    :style="'width:' + product.imgSize" 
+                    class="max-h-full w-auto object-contain group-hover:scale-110 transition-transform duration-700">
+                   </div>
                     <div class="px-6 pb-8 text-center">
-                        <h3 x-text="product.name" class="text-3xl font-black text-slate-950 uppercase italic tracking-tighter mb-4"></h3>
-                        <button class="w-full bg-slate-950 text-white py-4 rounded-3xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200">Ver Catálogo</button>
-                    </div>
+    <h3 x-text="product.name" class="text-xl font-black text-slate-950 uppercase italic tracking-tighter mb-2"></h3>
+    <button class="w-full bg-slate-950 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200">Ver Catálogo</button>
+</div>
                 </div>
             </template>
         </div>
@@ -300,10 +298,10 @@
     <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-lg" @click="modalOpen = false"></div>
     
     <div x-show="selectedProduct" class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all">
-     <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-12 relative">
+     <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-4 md:p-12 relative">
     <img :src="selectedVariant?.imagenColor" 
          :style="'width:' + selectedProduct?.imgSizeModal" 
-         class="max-h-[300px] lg:max-h-full object-contain drop-shadow-3xl transition-all duration-500 relative z-10">
+         class="max-h-[280px] lg:max-h-full object-contain drop-shadow-3xl transition-all duration-500 relative z-10">
 
     <template x-if="selectedProduct && selectedProduct.videoUrl">
         <button @click.stop="window.open(selectedProduct.videoUrl, '_blank')" 
@@ -350,7 +348,7 @@
     :class="(selectedVariant?.stock === 0 || (selectedVariant?.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor))) 
             ? 'bg-slate-300 cursor-not-allowed opacity-60' 
             : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'"
-    class="text-white px-10 py-5 rounded-3xl font-black shadow-2xl transition-all text-xs uppercase tracking-[0.2em]">
+    class="text-white px-9 py-4 rounded-3xl font-black shadow-2xl transition-all text-[11px] uppercase tracking-[0.2em] bg-indigo-600 hover:bg-indigo-700 active:scale-95">
     
     <span x-text="(selectedVariant?.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor)) 
                 ? 'Ya en Carrito' 
