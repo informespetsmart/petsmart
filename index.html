@@ -200,11 +200,11 @@
             <template x-for="product in products" :key="product.id">
                 <div class="bg-white rounded-[50px] border border-slate-100 p-2 hover:shadow-3xl transition-all duration-700 group cursor-pointer" @click="openModal(product)">
                     <div class="h-72 bg-slate-50/50 rounded-[45px] flex items-center justify-center p-8 mb-6 overflow-hidden">
-                       /*cambiar el tamaño de imagen para movil*/
+
                        <img :src="product.variants[0].imagenColor" 
      :style="'width:' + product.imgSize" 
      class="h-full max-h-[220px] md:max-h-full object-contain group-hover:scale-110 transition-transform duration-700">
-     */
+
                     </div>
                     <div class="px-6 pb-8 text-center">
                         <h3 x-text="product.name" class="text-3xl font-black text-slate-950 uppercase italic tracking-tighter mb-4"></h3>
