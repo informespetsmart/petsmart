@@ -466,11 +466,12 @@
               <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Disponibles</span>
               <span class="text-xl font-black text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
           </div>
-          <img
-            :src="selectedVariant?.imagenColor"
-            :style="'width:' + selectedProduct?.imgSizeModal"
-            class="max-h-[280px] lg:max-h-full object-contain drop-shadow-3xl transition-all duration-500 relative z-10"
-          />
+          <img 
+  :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
+  class="w-full h-auto max-h-[30vh] md:max-h-[450px] object-contain drop-shadow-2xl transition-all duration-500 relative z-10 px-4"
+  :style="window.innerWidth < 768 ? 'width: 100%' : 'width:' + selectedProduct?.imgSizeModal"
+  alt="Producto PetSmart"
+>
           <template x-if="selectedProduct && selectedProduct.videoUrl">
             <button
               @click.stop="window.open(selectedProduct.videoUrl, '_blank')"
@@ -493,10 +494,10 @@
         <div
           class="p-12 lg:w-1/2 flex flex-col justify-center bg-white space-y-6"
         >
-          <h2
-            class="text-5xl font-black text-slate-950 uppercase italic tracking-tighter"
-            x-text="selectedProduct?.name"
-          ></h2>
+          <h2 
+  class="text-2xl md:text-5xl font-black text-slate-950 uppercase italic tracking-tighter leading-none" 
+  x-text="selectedProduct?.name"
+></h2>
           <p
             class="text-slate-500 font-medium"
             x-html="selectedProduct?.desc"
@@ -563,12 +564,12 @@
           </div>
         </div>
 
-        <button
-          @click="modalOpen = false"
-          class="absolute top-10 right-10 text-slate-300 text-4xl hover:text-rose-500 font-light transition-colors"
-        >
-          ×
-        </button>
+        <button 
+  @click="modalOpen = false" 
+  class="fixed top-6 right-6 z-[100] bg-white/90 backdrop-blur-sm shadow-xl w-12 h-12 rounded-full flex items-center justify-center text-slate-900 border border-slate-200 active:scale-90 transition-all"
+>
+  <i class="fa-solid fa-xmark text-2xl"></i>
+</button>
       </div>
     </div>
 
@@ -896,7 +897,7 @@
             const v = p.variants.find(varnt => varnt.nombreColor === vNombre);
             v.stock = parseInt(newStock);
             // Guardamos en el navegador para que no se borre al refrescar
-            localStorage.setItem('petsmart_inventory', JSON.stringify(this.products));
+            localStorage.setItem('petsmart_inventory_2026', JSON.stringify(this.products));
           },
           cartOpen: false,
           modalOpen: false,
@@ -1471,61 +1472,60 @@
           </p>
         </div>
 
-        <form @submit.prevent="sendDeliveryWhatsApp" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              x-model="deliveryForm.nombre"
-              placeholder="NOMBRE COMPLETO"
-              required
-              class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
-            />
-            <input
-              type="number"
-              x-model="deliveryForm.dni"
-              placeholder="DNI"
-              required
-              class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
-            />
-          </div>
+       <form @submit.prevent="sendDeliveryWhatsApp" class="space-y-3"> <div class="grid grid-cols-2 gap-3">
+    <input
+      type="text"
+      x-model="deliveryForm.nombre"
+      placeholder="NOMBRE COMPLETO"
+      required
+      class="w-full bg-slate-50 border-none rounded-xl p-3 text-[10px] font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
+    />
+    <input
+      type="number"
+      x-model="deliveryForm.dni"
+      placeholder="DNI"
+      required
+      class="w-full bg-slate-50 border-none rounded-xl p-3 text-[10px] font-black ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
+    />
+  </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <select
-              x-model="deliveryForm.agencia"
-              required
-              class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
-            >
-              <option value="">AGENCIA...</option>
-              <option value="SHALOM">SHALOM</option>
-              <option value="OLVA COURIER">OLVA COURIER</option>
-            </select>
-            <select
-              x-model="deliveryForm.departamento"
-              required
-              class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
-            >
-              <option value="">DEPARTAMENTO...</option>
-              <template x-for="dep in departamentosPeru" :key="dep">
-                <option :value="dep" x-text="dep"></option>
-              </template>
-            </select>
-          </div>
+  <div class="grid grid-cols-2 gap-3">
+    <select
+      x-model="deliveryForm.agencia"
+      required
+      class="w-full bg-slate-50 border-none rounded-xl p-3 text-[10px] font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
+    >
+      <option value="">AGENCIA...</option>
+      <option value="SHALOM">SHALOM</option>
+      <option value="OLVA COURIER">OLVA COURIER</option>
+    </select>
+    <select
+      x-model="deliveryForm.departamento"
+      required
+      class="w-full bg-slate-50 border-none rounded-xl p-3 text-[10px] font-black uppercase ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
+    >
+      <option value="">DEPARTAMENTO...</option>
+      <template x-for="dep in departamentosPeru" :key="dep">
+        <option :value="dep" x-text="dep"></option>
+      </template>
+    </select>
+  </div>
 
-          <input
-            type="tel"
-            x-model="deliveryForm.whatsapp"
-            placeholder="NÚMERO WHATSAPP"
-            required
-            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
-          />
+  <input
+    type="tel"
+    x-model="deliveryForm.whatsapp"
+    placeholder="NÚMERO WHATSAPP"
+    required
+    class="w-full bg-slate-50 border-none rounded-xl p-3 text-[10px] font-black ring-1 ring-slate-100 focus:ring-indigo-500 outline-none"
+  />
 
-          <button
-            type="submit"
-            class="w-full bg-indigo-600 text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-          >
-            Enviar a WhatsApp para Coordinar
-          </button>
-        </form>
+  <button
+    type="submit"
+    class="w-full bg-indigo-600 text-white py-4 rounded-[18px] font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+  >
+    Enviar a WhatsApp para Coordinar
+  </button>
+</form>
       </div>
     </div>
     <script defer src="/_vercel/insights/script.js"></script>
