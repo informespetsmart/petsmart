@@ -937,17 +937,26 @@
             }
           },
 
-          updateStock(pId, vNombre, newStock) {
-            const p = this.products.find(item => item.id === pId);
-            if (p) {
-              const v = p.variants.find(varnt => varnt.nombreColor === vNombre);
-              if (v) {
-                v.stock = parseInt(newStock) || 0;
-                // Guardamos en el navegador para que no se borre al refrescar
-                localStorage.setItem('petsmart_inventory_2026', JSON.stringify(this.products));
-              }
-            }
-          },
+         updateStock(pId, vNombre, newStock) {
+  const stockNum = parseInt(newStock) || 0;
+
+  // 1. Buscamos el producto y la variante en tu lista local (para que cambie en tu pantalla)
+  const p = this.products.find(item => item.id === pId);
+  if (p) {
+    const v = p.variants.find(varnt => varnt.nombreColor === vNombre);
+    if (v) v.stock = stockNum;
+  }
+
+  // 2. ¡MAGIA! Lo mandamos a la nube de Firebase
+  // Esta línea reemplaza al localStorage.setItem
+  database.ref('stocks/' + pId + '/' + vNombre).set(stockNum)
+    .then(() => {
+      console.log("¡Sincronizado! " + vNombre + " ahora tiene " + stockNum);
+    })
+    .catch((error) => {
+      console.error("Error al guardar en la nube:", error);
+    });
+},
 
           // --- TU FUNCIÓN INIT CORREGIDA CON PERSISTENCIA ---
           init() {
