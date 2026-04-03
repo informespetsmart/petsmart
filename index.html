@@ -891,14 +891,26 @@
             }
           },
 
-          updateStock(pId, vNombre, newStock) {
-            // Actualizamos el stock en el array actual
-            const p = this.products.find(item => item.id === pId);
-            const v = p.variants.find(varnt => varnt.nombreColor === vNombre);
-            v.stock = parseInt(newStock);
-            // Guardamos en el navegador para que no se borre al refrescar
-            localStorage.setItem('petsmart_inventory_2026', JSON.stringify(this.products));
-          },
+        updateStock(pId, vNombre, newStock) {
+  const stockNum = parseInt(newStock) || 0;
+  
+  // 1. Actualiza tu pantalla localmente (lo que tú ves en ese momento)
+  const p = this.products.find(item => item.id === pId);
+  if (p) {
+    const v = p.variants.find(varnt => varnt.nombreColor === vNombre);
+    if (v) v.stock = stockNum;
+  }
+
+  // 2. Manda el cambio a la nube de Firebase (lo que verán los clientes)
+  database.ref('stocks/' + pId + '/' + vNombre).set(stockNum)
+    .then(() => {
+      console.log("¡Éxito! El stock de " + vNombre + " ahora es " + stockNum + " en la nube.");
+    })
+    .catch(err => {
+      console.error("Hubo un error con Firebase:", err);
+      alert("No se pudo guardar en la nube. Revisa tu conexión.");
+    });
+},
           cartOpen: false,
           modalOpen: false,
           qrYapeOpen: false,
@@ -939,36 +951,43 @@
 
           // --- TU FUNCIÓN INIT CORREGIDA CON PERSISTENCIA ---
           init() {
-            // 1. Mantenemos tu carga de inventario
-            const savedInventory = localStorage.getItem('petsmart_inventory_2026');
-            if (savedInventory) {
-              this.products = JSON.parse(savedInventory);
-            }
+            // 1. CONEXIÓN CON LA NUBE (Reemplaza al localStorage)
+            // Esto hace que la web "escuche" a Firebase en tiempo real
+            database.ref('stocks').on('value', (snapshot) => {
+              const cloudData = snapshot.val();
+              if (cloudData) {
+                this.products.forEach(p => {
+                  if (cloudData[p.id]) {
+                    p.variants.forEach(v => {
+                      // Si Firebase tiene un número para este color, lo ponemos
+                      if (cloudData[p.id][v.nombreColor] !== undefined) {
+                        v.stock = cloudData[p.id][v.nombreColor];
+                      }
+                    });
+                  }
+                });
+              }
+            });
 
-            // 2. Mantenemos tu lógica de fechas
+            // 2. Lógica de fechas (Se mantiene igual)
             const now = new Date();
             if (now.getHours() >= 12) now.setDate(now.getDate() + 1);
             this.minDate = now.toISOString().split("T")[0];
             this.deliveryDate = this.minDate;
 
-            // 3. NUEVO MOTOR DE 20 MINUTOS (REEMPLAZADO AQUÍ)
-            let segundosRestantes = 20 * 60; // 20 minutos exactos
-
+            // 3. Motor de 20 minutos (Se mantiene igual)
+            let segundosRestantes = 20 * 60;
             setInterval(() => {
               if (segundosRestantes > 0) {
                 segundosRestantes--;
-                
                 const m = Math.floor(segundosRestantes / 60);
                 const s = segundosRestantes % 60;
-
-                // Actualizamos los números en pantalla
                 this.countdown.h = "00"; 
                 this.countdown.m = m.toString().padStart(2, '0');
                 this.countdown.s = s.toString().padStart(2, '0');
               }
             }, 1000);
           },
-          // --- TU LÓGICA DE VALIDACIÓN (SE MANTIENE IGUAL) ---
           get isReady() {
             return (
               (this.selectedDistrito !== "" || this.selectedEstacion !== "") &&
@@ -1551,5 +1570,32 @@
         <button @click="adminOpen = false" class="w-full mt-6 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest">Guardar y Cerrar</button>
       </div>
     </div>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script>
+  // Tu configuración de Firebase (la saqué de tu foto)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDBB2yedGTYzbqX5p6sY411g6Qsw8JEgu0",
+    authDomain: "petsmart-inventario.firebaseapp.com",
+    databaseURL: "https://petsmart-inventario-default-rtdb.firebaseio.com",
+    projectId: "petsmart-inventario",
+    storageBucket: "petsmart-inventario.firebasestorage.app",
+    messagingSenderId: "566190749664",
+    appId: "1:566190749664:web:f634131e6d514d283f5d85"
+  };
+
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // ESTA ES LA FUNCIÓN QUE USARÁ TU BOTÓN DE ADMIN
+  function updateStock(productId, colorName, nuevoStock) {
+    // Esto lo guarda en la nube para que TODOS lo vean
+    database.ref('stocks/' + productId + '/' + colorName).set(parseInt(nuevoStock))
+      .then(() => console.log("¡Stock guardado en la nube!"))
+      .catch((error) => console.error("Error al guardar:", error));
+  }
+</script>
   </body>
 </html>
