@@ -549,19 +549,17 @@
             ></span>
 
             <button
-              @click="addToCartWithColor($event)"
-              :disabled="!selectedVariant || selectedVariant.stock === 0 || (selectedVariant.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor))"
-              :class="(selectedVariant?.stock === 0 || (selectedVariant?.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor))) 
-            ? 'bg-slate-300 cursor-not-allowed opacity-60' 
-            : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'"
-              class="text-white px-9 py-4 rounded-3xl font-black shadow-2xl transition-all text-[11px] uppercase tracking-[0.2em] bg-indigo-600 hover:bg-indigo-700 active:scale-95"
-            >
-              <span
-                x-text="(selectedVariant?.stock === 1 && cart.some(item => item.id === selectedProduct.id && item.selectedColorName === selectedVariant.nombreColor)) 
-                ? 'Ya en Carrito' 
-                : (selectedVariant?.stock === 0 ? 'Sin Stock' : 'Añadir +')"
-              ></span>
-            </button>
+  @click="addToCartWithColor($event)"
+  :disabled="!selectedVariant || selectedVariant.stock === 0"
+  :class="(!selectedVariant || selectedVariant.stock === 0) 
+    ? 'bg-slate-300 cursor-not-allowed opacity-60' 
+    : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'"
+  class="text-white px-9 py-4 rounded-3xl font-black shadow-2xl transition-all text-[11px] uppercase tracking-[0.2em]"
+>
+  <span
+    x-text="selectedVariant?.stock === 0 ? 'Sin Stock' : 'Añadir +'"
+  ></span>
+</button>
           </div>
         </div>
 
@@ -606,6 +604,30 @@
           PetSmart
         </p>
       </div>
+      <div class="bg-indigo-50/50 border border-indigo-100 p-5 mb-6 rounded-[35px] flex items-center justify-between shadow-sm">
+  <div class="flex flex-col">
+    <span class="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+      <i class="fa-solid fa-bolt-lightning animate-pulse"></i> Oferta termina en:
+    </span>
+    <div class="flex gap-2">
+      <div class="bg-white w-12 h-12 rounded-2xl shadow-sm flex flex-col items-center justify-center border border-indigo-50">
+        <span class="text-lg font-black text-slate-900 leading-none" x-text="countdown.h">00</span>
+        <span class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Horas</span>
+      </div>
+      <div class="bg-white w-12 h-12 rounded-2xl shadow-sm flex flex-col items-center justify-center border border-indigo-50">
+        <span class="text-lg font-black text-slate-900 leading-none" x-text="countdown.m">00</span>
+        <span class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Min</span>
+      </div>
+      <div class="bg-white w-12 h-12 rounded-2xl shadow-sm flex flex-col items-center justify-center border border-indigo-50">
+        <span class="text-lg font-black text-rose-500 leading-none" x-text="countdown.s">00</span>
+        <span class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Seg</span>
+      </div>
+    </div>
+  </div>
+  <div class="bg-indigo-500 w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-indigo-200">
+     <i class="fa-solid fa-stopwatch text-white text-xl"></i>
+  </div>
+</div>
       <button
         @click="cartOpen = false"
         class="text-slate-300 hover:text-rose-500 text-5xl font-light transition-colors"
@@ -618,38 +640,41 @@
           class="flex-1 p-8 overflow-y-auto space-y-4 scrollbar-hide bg-slate-50/20"
         >
           <template x-for="(item, index) in cart" :key="index">
-            <div
-              class="bg-white p-5 rounded-[35px] flex items-center gap-5 border border-slate-100 shadow-sm transition-all hover:scale-[1.02]"
-            >
-              <div
-                class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center p-3"
-              >
-                <img
-                  :src="item.imagenColor"
-                  class="w-full h-full object-contain"
-                />
-              </div>
-              <div class="flex-1">
-                <p
-                  class="text-[12px] font-black text-slate-900 uppercase italic"
-                  x-text="item.name"
-                ></p>
-                <p
-                  class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-1"
-                  x-text="item.selectedColorName"
-                ></p>
-                <p
-                  class="text-lg font-black mt-1 text-slate-950 italic"
-                  x-text="'S/ ' + item.price"
-                ></p>
-              </div>
-              <button
-                @click="removeFromCart(index)"
-                class="text-slate-200 hover:text-rose-500 transition-colors px-4"
-              >
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </div>
+            <div class="bg-white p-5 rounded-[35px] flex items-center gap-5 border border-slate-100 shadow-sm transition-all hover:scale-[1.02]">
+  <div class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center p-3">
+    <img :src="item.imagenColor" class="w-full h-full object-contain" />
+  </div>
+
+  <div class="flex-1">
+    <p class="text-[12px] font-black text-slate-900 uppercase italic" x-text="item.name"></p>
+    <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-1" x-text="item.selectedColorName"></p>
+
+    <div class="flex items-center gap-3 mt-3 bg-slate-100 w-fit rounded-full px-2 py-1 border border-slate-200">
+      <button 
+        @click="updateQuantity(index, 'minus')" 
+        class="w-7 h-7 flex items-center justify-center bg-white rounded-full shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all text-sm font-black active:scale-90">
+        <i class="fa-solid fa-minus scale-75"></i>
+      </button>
+      
+      <span class="text-[12px] font-black text-slate-800 min-w-[24px] text-center" x-text="item.quantity"></span>
+      
+      <button 
+        @click="updateQuantity(index, 'plus')" 
+        class="w-7 h-7 flex items-center justify-center bg-white rounded-full shadow-sm hover:bg-indigo-50 hover:text-indigo-600 transition-all text-sm font-black active:scale-90">
+        <i class="fa-solid fa-plus scale-75"></i>
+      </button>
+    </div>
+
+    <p class="text-lg font-black mt-2 text-slate-950 italic" x-text="'S/ ' + (item.price * item.quantity).toFixed(2)"></p>
+  </div>
+
+  <button
+    @click="removeFromCart(index)"
+    class="text-slate-200 hover:text-rose-500 transition-colors px-4"
+  >
+    <i class="fa-solid fa-trash-can"></i>
+  </button>
+</div>
           </template>
 
           <div
@@ -854,6 +879,7 @@
       document.addEventListener("alpine:init", () => {
         Alpine.data("shop", () => ({
           adminOpen: false,
+          countdown: { h: '00', m: '00', s: '00' },
 
           promptAdmin() {
             const pass = prompt("Acceso Administrativo. Ingrese Contraseña:");
@@ -888,9 +914,7 @@
           deliveryDate: "",
           minDate: "",
 
-       // --- NUEVAS FUNCIONES DE ADMINISTRACIÓN ---
-          adminOpen: false,
-
+       
           promptAdmin() {
             const pass = prompt("Acceso Administrativo. Ingrese Contraseña:");
             if (pass === "PetSmart2026") {
@@ -914,18 +938,35 @@
 
           // --- TU FUNCIÓN INIT CORREGIDA CON PERSISTENCIA ---
           init() {
-            // Intentar cargar stock guardado antes de mostrar la página
+            // 1. Mantenemos tu carga de inventario
             const savedInventory = localStorage.getItem('petsmart_inventory_2026');
             if (savedInventory) {
               this.products = JSON.parse(savedInventory);
             }
 
+            // 2. Mantenemos tu lógica de fechas
             const now = new Date();
             if (now.getHours() >= 12) now.setDate(now.getDate() + 1);
             this.minDate = now.toISOString().split("T")[0];
             this.deliveryDate = this.minDate;
-          },
 
+            // 3. NUEVO MOTOR DE 20 MINUTOS (REEMPLAZADO AQUÍ)
+            let segundosRestantes = 20 * 60; // 20 minutos exactos
+
+            setInterval(() => {
+              if (segundosRestantes > 0) {
+                segundosRestantes--;
+                
+                const m = Math.floor(segundosRestantes / 60);
+                const s = segundosRestantes % 60;
+
+                // Actualizamos los números en pantalla
+                this.countdown.h = "00"; 
+                this.countdown.m = m.toString().padStart(2, '0');
+                this.countdown.s = s.toString().padStart(2, '0');
+              }
+            }, 1000);
+          },
           // --- TU LÓGICA DE VALIDACIÓN (SE MANTIENE IGUAL) ---
           get isReady() {
             return (
@@ -1279,24 +1320,46 @@
             });
           },
 
-          addToCartWithColor(e) {
-            this.cart.push({
-              ...this.selectedProduct,
-              selectedColorName: this.selectedVariant.nombreColor,
-              imagenColor: this.selectedVariant.imagenColor,
-            });
-            new Audio(
-              "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3",
-            )
-              .play()
-              .catch(() => {});
-            this.popPaws(e.clientX, e.clientY);
-            this.calculateTotal();
-            this.modalOpen = false;
-            this.cartOpen = true;
+       addToCartWithColor(e) {
+            const variant = this.selectedVariant;
+            if (variant && variant.stock > 0) {
+              // 1. LÓGICA DE AGRUPACIÓN: Buscar si ya existe el mismo producto y color
+              const itemExistente = this.cart.find(item => 
+                item.id === this.selectedProduct.id && 
+                item.selectedColorName === variant.nombreColor
+              );
+
+              if (itemExistente) {
+                // Si existe, solo aumentamos la cantidad
+                itemExistente.quantity++;
+              } else {
+                // Si es nuevo, lo añadimos con cantidad 1
+                this.cart.push({
+                  ...this.selectedProduct,
+                  selectedColorName: variant.nombreColor,
+                  imagenColor: variant.imagenColor,
+                  colorIndex: this.selectedProduct.variants.indexOf(variant),
+                  quantity: 1
+                });
+              }
+
+              // 2. ACTUALIZACIÓN DE STOCK (Opcional pero recomendado)
+              variant.stock--;
+
+              // --- LO QUE SE MANTIENE IGUAL (Sonido y Animación) ---
+              new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3")
+                .play()
+                .catch(() => {});
+              
+              this.popPaws(e.clientX, e.clientY);
+              this.calculateTotal();
+              this.modalOpen = false;
+              this.cartOpen = true;
+            }
           },
 
           popPaws(x, y) {
+            // Mantenido exactamente igual a tu original
             for (let i = 0; i < 12; i++) {
               const h = document.createElement("i");
               h.className = `fa-solid fa-paw paws-pop text-indigo-500 text-3xl`;
@@ -1311,12 +1374,49 @@
           },
 
           removeFromCart(i) {
+            // Recuperar stock al eliminar (si usas manejo de stock)
+            const item = this.cart[i];
+            const p = this.products.find(prod => prod.id === item.id);
+            if(p) p.variants[item.colorIndex].stock += item.quantity;
+
             this.cart.splice(i, 1);
             this.calculateTotal();
           },
+// --- NUEVA FUNCIÓN PARA SUMAR/RESTAR EN EL CARRITO ---
+          updateQuantity(index, operacion) {
+            const item = this.cart[index];
+            // Buscamos el producto original para controlar su stock real
+            const p = this.products.find(prod => prod.id === item.id);
+            const variant = p.variants[item.colorIndex];
+
+            if (operacion === 'plus') {
+              if (variant.stock > 0) {
+                item.quantity++;
+                variant.stock--; // Quitamos uno de la vitrina
+              } else {
+                alert("¡Uy! Ya no quedan más unidades de este color.");
+              }
+            } else if (operacion === 'minus') {
+              item.quantity--;
+              variant.stock++; // Devolvemos uno a la vitrina
+              
+              // Si el cliente baja de 1 a 0, lo eliminamos automáticamente
+              if (item.quantity <= 0) {
+                this.cart.splice(index, 1);
+              }
+            }
+            // Siempre actualizamos los precios después de cambiar cantidades
+            this.calculateTotal();
+          },
+
           calculateTotal() {
-            this.subtotal = this.cart.reduce((s, i) => s + i.price, 0);
-            this.total = this.subtotal + this.costoEnvio;
+            this.subtotal = this.cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+            this.total = this.subtotal + (this.costoEnvio || 0);
+          },
+          calculateTotal() {
+            // CORRECCIÓN: Ahora suma multiplicando (Precio x Cantidad)
+            this.subtotal = this.cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+            this.total = this.subtotal + (this.costoEnvio || 0);
           },
 
           sendWhatsApp() {
