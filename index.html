@@ -459,108 +459,85 @@
   x-show="selectedProduct"
   class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col-reverse lg:flex-row transition-all"
 >
-        <div class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-4 md:p-12 relative rounded-[40px] m-4 lg:m-0 lg:rounded-none">
-          <div class="absolute top-8 left-8 z-30 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/50 flex flex-col items-center">
-              <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Disponibles</span>
-              <span class="text-xl font-black text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
-          </div>
-          <img 
-  :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
-  class="w-full h-auto max-h-[30vh] md:max-h-[450px] object-contain drop-shadow-2xl transition-all duration-500 relative z-10 px-4"
-  :style="window.innerWidth < 768 ? 'width: 100%' : 'width:' + selectedProduct?.imgSizeModal"
-  alt="Producto PetSmart"
->
-          <template x-if="selectedProduct && selectedProduct.videoUrl">
-            <button
-              @click.stop="window.open(selectedProduct.videoUrl, '_blank')"
-              class="absolute bottom-6 left-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 border border-slate-200 hover:bg-indigo-600 hover:text-white transition-all shadow-2xl z-50 group"
-            >
-              <i
-                class="fa-solid fa-circle-play text-xl text-indigo-600 group-hover:text-white"
-              ></i>
-              <div class="flex flex-col items-start leading-tight">
-                <span
-                  class="text-slate-400 group-hover:text-indigo-100 text-[8px]"
-                  >Video Referencial</span
-                >
-                <span x-text="selectedProduct.name"></span>
-              </div>
+      <div x-show="selectedProduct" 
+     class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all border border-slate-50">
+    
+    <div class="lg:w-1/2 bg-[#F0F4F8] p-8 md:p-16 flex flex-col justify-center items-center relative group">
+        
+        <div class="absolute top-24 left-8 z-30 bg-white/90 backdrop-blur-md px-5 py-3 rounded-[24px] shadow-xl border border-white/50 flex flex-col items-center min-w-[70px]">
+    <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1 tracking-widest">Stock</span>
+    <span class="text-2xl font-[1000] text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
+</div>
+
+        <img :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
+             class="w-full h-auto max-h-[35vh] md:max-h-[450px] object-contain drop-shadow-[0_35px_50px_rgba(0,0,0,0.12)] transition-all duration-700 relative z-10 px-4 group-hover:scale-105"
+             :style="window.innerWidth < 768 ? 'width: 100%' : 'width:' + selectedProduct?.imgSizeModal"
+             alt="Producto">
+
+        <template x-if="selectedProduct && selectedProduct.videoUrl">
+            <button @click.stop="window.open(selectedProduct.videoUrl, '_blank')"
+                    class="absolute bottom-8 left-8 bg-white/95 backdrop-blur-md p-4 rounded-[24px] font-black text-[10px] uppercase tracking-widest flex items-center gap-4 border border-white shadow-2xl z-50 group/vid hover:bg-slate-950 hover:text-white transition-all">
+                <i class="fa-solid fa-circle-play text-2xl text-indigo-600 group-hover/vid:text-white transition-colors"></i>
+                <div class="flex flex-col items-start leading-tight">
+                    <span class="text-slate-400 group-hover/vid:text-indigo-200 text-[7px] tracking-widest">WATCH DEMO</span>
+                    <span class="truncate max-w-[120px]" x-text="selectedProduct.name"></span>
+                </div>
             </button>
-          </template>
+        </template>
+    </div>
+
+    <div class="p-10 lg:p-16 lg:w-1/2 flex flex-col justify-center bg-white relative">
+        
+        <div class="mb-8">
+            <h2 class="text-2xl md:text-2xl font-[1000] text-slate-950 uppercase italic tracking-tighter leading-[0.9] mb-4">
+                ¡LLÉVALOS A<br>
+                <span class="text-indigo-600">TODOS LADOS! 🚗✈️</span>
+            </h2>
+            <div class="h-1 w-20 bg-indigo-600 rounded-full"></div>
         </div>
 
-        <div
-          class="p-12 lg:w-1/2 flex flex-col justify-center bg-white space-y-6"
-        >
-          <h2 
-  class="text-2xl md:text-5xl font-black text-slate-950 uppercase italic tracking-tighter leading-none" 
-  x-text="selectedProduct?.name"
-></h2>
-          <p
-            class="text-slate-500 font-medium"
-            x-html="selectedProduct?.desc"
-          ></p>
+        <div class="text-slate-500 font-medium italic text-sm leading-relaxed mb-8 border-l-2 border-slate-100 pl-6" 
+           x-html="selectedProduct?.desc"></div>
 
-          <div class="space-y-4">
-            <p
-              class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic"
-            >
-              Colección de Colores (Desliza)
+        <div class="space-y-4 mb-10">
+            <p class="text-[9px] font-[1000] text-slate-300 uppercase tracking-[0.3em] italic">
+                Selecciona tu Diseño:
             </p>
-            <div
-              class="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x px-2 -mx-2"
-            >
-              <template
-                x-for="variant in selectedProduct?.variants"
-                :key="variant.nombreColor"
-              >
-                <button
-                  @click="selectedVariant = variant"
-                  :class="selectedVariant === variant ? 'color-selected' : (variant.stock === 0 ? 'opacity-20 grayscale' : 'opacity-30')"
-                  class="relative flex-shrink-0 w-20 h-20 rounded-[30px] border-2 border-slate-100 overflow-hidden bg-white snap-center p-1 transition-all"
-                >
-                  <img
-                    :src="variant.thumbnailColor"
-                    class="w-full h-full object-contain"
-                  />
-
-                  <template x-if="variant.stock === 0">
-                    <div
-                      class="absolute inset-0 bg-slate-900/40 flex items-center justify-center"
-                    >
-                      <span
-                        class="text-[8px] text-white font-black uppercase tracking-tighter"
-                        >Agotado</span
-                      >
-                    </div>
-                  </template>
-                </button>
-              </template>
+            <div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+                <template x-for="variant in selectedProduct?.variants" :key="variant.nombreColor">
+                    <button @click="selectedVariant = variant"
+                            :class="selectedVariant === variant ? 'ring-4 ring-indigo-50 border-indigo-600 scale-105' : (variant.stock === 0 ? 'opacity-20 grayscale' : 'opacity-40 hover:opacity-100')"
+                            class="relative flex-shrink-0 w-16 h-16 rounded-[22px] border-2 border-slate-100 overflow-hidden bg-white transition-all p-1 shadow-sm">
+                        <img :src="variant.thumbnailColor" class="w-full h-full object-contain rounded-[18px]">
+                        <template x-if="variant.stock === 0">
+                            <div class="absolute inset-0 bg-slate-900/60 flex items-center justify-center">
+                                <i class="fa-solid fa-xmark text-white text-xs"></i>
+                            </div>
+                        </template>
+                    </button>
+                </template>
             </div>
-          </div>
-
-          <div
-            class="bg-slate-50 p-8 rounded-[40px] flex justify-between items-center border border-slate-50 mt-8"
-          >
-            <span
-              class="text-3xl font-black text-slate-950 italic"
-              x-text="'S/ ' + selectedProduct?.price"
-            ></span>
-
-            <button
-  @click="addToCartWithColor($event)"
-  :disabled="!selectedVariant || selectedVariant.stock === 0"
-  :class="(!selectedVariant || selectedVariant.stock === 0) 
-    ? 'bg-slate-300 cursor-not-allowed opacity-60' 
-    : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'"
-  class="text-white px-9 py-4 rounded-3xl font-black shadow-2xl transition-all text-[11px] uppercase tracking-[0.2em]"
->
-  <span
-    x-text="selectedVariant?.stock === 0 ? 'Sin Stock' : 'Añadir +'"
-  ></span>
-</button>
-          </div>
         </div>
+
+        <div class="bg-slate-50 p-6 md:p-8 rounded-[40px] flex flex-col sm:flex-row justify-between items-center gap-6 border border-slate-100 shadow-inner">
+            <div class="flex flex-col">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-1">Precio Final</span>
+                <span class="text-3xl font-[1000] text-slate-950 italic tracking-tighter" 
+                      x-text="'S/ ' + selectedProduct?.price"></span>
+            </div>
+
+            <button @click="addToCartWithColor($event)"
+                    :disabled="!selectedVariant || selectedVariant.stock === 0"
+                    :class="(!selectedVariant || selectedVariant.stock === 0) 
+                        ? 'bg-slate-300 cursor-not-allowed' 
+                        : 'bg-indigo-600 hover:bg-slate-950 shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:shadow-none'"
+                    class="w-full sm:w-auto text-white px-10 py-6 rounded-[28px] font-[1000] transition-all text-sm uppercase italic tracking-widest flex items-center justify-center gap-3 active:scale-95">
+                <span x-text="selectedVariant?.stock === 0 ? 'AGOTADO' : '¡AÑADIR!'"></span>
+                <i class="fa-solid fa-bolt-lightning text-xs"></i>
+            </button>
+        </div>
+    </div>
+</div>
 
         <button 
   @click="modalOpen = false" 
