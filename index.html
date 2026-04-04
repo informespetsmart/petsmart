@@ -459,20 +459,22 @@
   x-show="selectedProduct"
   class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col-reverse lg:flex-row transition-all"
 >
-      <div x-show="selectedProduct" 
+     <div x-show="selectedProduct" 
      class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all border border-slate-50">
     
-    <div class="lg:w-1/2 bg-[#F0F4F8] p-8 md:p-16 flex flex-col justify-center items-center relative group">
+    <div class="lg:w-1/2 bg-[#F0F4F8] p-6 md:p-16 flex flex-col justify-center items-center relative group min-h-[400px]">
         
-        <div class="absolute top-24 left-8 z-30 bg-white/90 backdrop-blur-md px-5 py-3 rounded-[24px] shadow-xl border border-white/50 flex flex-col items-center min-w-[70px]">
-    <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1 tracking-widest">Stock</span>
-    <span class="text-2xl font-[1000] text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
-</div>
+        <div class="relative mt-4 mb-4 lg:absolute lg:mt-0 lg:mb-0 lg:top-8 lg:left-8 z-30 bg-white/90 backdrop-blur-md px-5 py-3 rounded-[24px] shadow-xl border border-white/50 flex flex-col items-center min-w-[70px]">
+            <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1 tracking-widest">Stock</span>
+            <span class="text-2xl font-[1000] text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
+        </div>
 
-        <img :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
-             class="w-full h-auto max-h-[35vh] md:max-h-[450px] object-contain drop-shadow-[0_35px_50px_rgba(0,0,0,0.12)] transition-all duration-700 relative z-10 px-4 group-hover:scale-105"
-             :style="window.innerWidth < 768 ? 'width: 100%' : 'width:' + selectedProduct?.imgSizeModal"
-             alt="Producto">
+        <div class="w-full flex justify-center pt-4 lg:pt-0">
+            <img :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
+                 class="w-full h-auto max-h-[35vh] md:max-h-[450px] object-contain drop-shadow-[0_35px_50px_rgba(0,0,0,0.12)] transition-all duration-700 relative z-10 px-4 group-hover:scale-105"
+                 :style="window.innerWidth < 768 ? 'width: 100%' : 'width:' + selectedProduct?.imgSizeModal"
+                 alt="Producto">
+        </div>
 
         <template x-if="selectedProduct && selectedProduct.videoUrl">
             <button @click.stop="window.open(selectedProduct.videoUrl, '_blank')"
@@ -487,9 +489,8 @@
     </div>
 
     <div class="p-10 lg:p-16 lg:w-1/2 flex flex-col justify-center bg-white relative">
-        
         <div class="mb-8">
-            <h2 class="text-2xl md:text-2xl font-[1000] text-slate-950 uppercase italic tracking-tighter leading-[0.9] mb-4">
+            <h2 class="text-4xl md:text-5xl font-[1000] text-slate-950 uppercase italic tracking-tighter leading-[0.9] mb-4">
                 ¡LLÉVALOS A<br>
                 <span class="text-indigo-600">TODOS LADOS! 🚗✈️</span>
             </h2>
@@ -522,7 +523,7 @@
         <div class="bg-slate-50 p-6 md:p-8 rounded-[40px] flex flex-col sm:flex-row justify-between items-center gap-6 border border-slate-100 shadow-inner">
             <div class="flex flex-col">
                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-1">Precio Final</span>
-                <span class="text-3xl font-[1000] text-slate-950 italic tracking-tighter" 
+                <span class="text-4xl font-[1000] text-slate-950 italic tracking-tighter" 
                       x-text="'S/ ' + selectedProduct?.price"></span>
             </div>
 
