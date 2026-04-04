@@ -494,8 +494,8 @@
             <div class="h-1.5 w-16 bg-indigo-600 rounded-full"></div>
         </div>
 
-        <div class="text-slate-500 font-medium italic text-sm leading-relaxed mb-8 border-l-4 border-slate-50 pl-6" 
-           x-html="selectedProduct?.desc"></div>
+        <div class="text-slate-500 font-medium italic text-[11px] md:text-sm leading-tight mb-2 md:mb-8 border-l-4 border-slate-50 pl-4" 
+     x-html="selectedProduct?.desc"></div>
 
         <div class="space-y-4 mb-8">
             <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest italic">Selecciona tu Diseño:</p>
@@ -510,14 +510,14 @@
             </div>
         </div>
 
-       <div class="bg-slate-50 p-3 md:p-6 rounded-[32px] flex flex-row justify-between items-center gap-2 border border-slate-100 mt-1 shadow-inner">
-    <div class="flex flex-col">
-        <span class="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0">Inversión</span>
-        <span class="text-xl md:text-3xl font-black text-slate-950 italic whitespace-nowrap leading-none" x-text="'S/ ' + selectedProduct?.price"></span>
+       <div class="bg-slate-50 p-2 md:p-6 rounded-[28px] flex flex-row justify-between items-center gap-2 border border-slate-100 mt-0 shadow-inner">
+    <div class="flex flex-col pl-2">
+        <span class="text-[6px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Inversión</span>
+        <span class="text-lg md:text-3xl font-black text-slate-950 italic whitespace-nowrap leading-none" x-text="'S/ ' + selectedProduct?.price"></span>
     </div>
 
     <button @click="addToCartWithColor($event)"
-            class="flex-1 max-w-[140px] bg-indigo-600 hover:bg-slate-950 text-white px-3 py-3.5 md:py-4 rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 whitespace-nowrap">
+            class="flex-1 max-w-[130px] bg-indigo-600 hover:bg-slate-950 text-white px-2 py-3 md:py-4 rounded-xl font-black text-[9px] md:text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 whitespace-nowrap">
         ¡AÑADIR!
     </button>
 </div>
