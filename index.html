@@ -459,17 +459,15 @@
         x-show="selectedProduct"
         class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all"
       >
-       <div class="lg:w-1/2 bg-slate-50 flex items-start justify-center pt-24 pb-10 md:items-center md:pt-12 relative min-h-[450px]">
+       <div class="lg:w-1/2 bg-slate-50 flex items-start justify-center mt-[20%] pt-10 pb-6 md:mt-0 md:items-center md:p-12 relative min-h-[350px]">
           <div class="absolute top-8 left-8 z-30 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/50 flex flex-col items-center">
               <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Disponibles</span>
               <span class="text-xl font-black text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
           </div>
-         <img 
+        <img 
   :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
-  class="w-auto h-auto max-w-[85%] max-h-[450px] object-contain transition-all duration-500 relative z-10 p-6 md:p-10"
-  :style="{ 
-    transform: 'scale(' + (selectedProduct?.imgSizeModal || 1) + ')'
-  }"
+  class="w-auto h-auto max-w-[50%] max-h-[300px] object-contain transition-all duration-500 relative z-10 p-2"
+  style="display: block; margin: auto;"
   alt="Producto PetSmart"
 />
           <template x-if="selectedProduct && selectedProduct.videoUrl">
