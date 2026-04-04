@@ -255,11 +255,11 @@
           >
             <div
               class="relative bg-slate-50/50 rounded-[40px] mb-4 overflow-hidden flex items-center justify-center"
-              style="width: 100%; aspect-ratio: 1 / 1; min-height: 250px"
+              style="width: 100%; aspect-ratio: 1 / 1;"
             >
               <img
                 :src="product.variants[0].imagenColor"
-                class="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700"
+                class="w-full h-full object-contain p-12 group-hover:scale-110 transition-transform duration-700"
                 style="
                   max-height: 100%;
                   max-width: 100%;
@@ -459,19 +459,19 @@
         x-show="selectedProduct"
         class="bg-white w-full max-w-5xl rounded-[60px] overflow-hidden relative shadow-2xl flex flex-col lg:flex-row transition-all"
       >
-        <div
-          class="lg:w-1/2 bg-slate-50 flex items-center justify-center p-4 md:p-12 relative"
-        >
+       <div class="lg:w-1/2 bg-slate-50 flex items-start justify-center pt-24 pb-10 md:items-center md:pt-12 relative min-h-[450px]">
           <div class="absolute top-8 left-8 z-30 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/50 flex flex-col items-center">
               <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Disponibles</span>
               <span class="text-xl font-black text-indigo-600 italic leading-none" x-text="selectedVariant?.stock || '0'"></span>
           </div>
-          <img 
+         <img 
   :src="selectedVariant?.imagenColor || selectedProduct?.imagen" 
-  class="w-full h-auto max-h-[30vh] md:max-h-[450px] object-contain drop-shadow-2xl transition-all duration-500 relative z-10 px-4"
-  :style="window.innerWidth < 768 ? 'width: 100%' : 'width:' + selectedProduct?.imgSizeModal"
+  class="w-auto h-auto max-w-[85%] max-h-[450px] object-contain transition-all duration-500 relative z-10 p-6 md:p-10"
+  :style="{ 
+    transform: 'scale(' + (selectedProduct?.imgSizeModal || 1) + ')'
+  }"
   alt="Producto PetSmart"
->
+/>
           <template x-if="selectedProduct && selectedProduct.videoUrl">
             <button
               @click.stop="window.open(selectedProduct.videoUrl, '_blank')"
@@ -544,10 +544,10 @@
           <div
             class="bg-slate-50 p-8 rounded-[40px] flex justify-between items-center border border-slate-50 mt-8"
           >
-            <span
-              class="text-3xl font-black text-slate-950 italic"
-              x-text="'S/ ' + selectedProduct?.price"
-            ></span>
+           <div class="flex items-baseline gap-1 mt-2">
+  <span class="text-xl font-black text-indigo-600">S/</span>
+  <span class="text-5xl font-black text-slate-950 tracking-tighter" x-text="selectedProduct?.price"></span>
+</div>
 
             <button
   @click="addToCartWithColor($event)"
@@ -1559,7 +1559,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <div x-show="adminOpen" x-cloak class="fixed inset-0 z-[500] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md" @click="adminOpen = false"></div>
-      <div class="bg-white w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-[40px] p-8 relative shadow-2xl">
+      <div class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] p-6 md:p-12 relative shadow-2xl">
         <h2 class="text-2xl font-black text-indigo-600 mb-6 uppercase italic">Control de Inventario</h2>
         <div class="space-y-6">
           <template x-for="product in products" :key="product.id">
