@@ -3,277 +3,569 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PetSmart | Catálogo</title>
+    <title>PetSmart Elite | Official Store Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .bg-yape { background-color: #7424b3; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
+        .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+        .logo-custom { width: 180px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); filter: grayscale(0.2); }
+        .logo-custom:hover { transform: scale(1.05) translateY(-2px); filter: grayscale(0) drop-shadow(0 10px 15px rgba(99,102,241,0.2)); }
+        .fb-float { position: fixed; bottom: 30px; left: 30px; z-index: 150; background: #1877F2; color: white; width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(24,119,242,0.3); transition: transform 0.3s; }
+        .fb-float:hover { transform: scale(1.1); }
+        .nav-blur { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .led-pulse { animation: pulse-green 2s infinite; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+        .footer-bg { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+        .product-card-shadow { box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05); }
+        .product-card-shadow:hover { box-shadow: 0 30px 60px -12px rgba(99,102,241,0.15); }
+        .tab-active { background: #6366f1 !important; color: white !important; border-color: #6366f1 !important; }
+        .payment-sidebar { border-right: 1px solid #e2e8f0; }
+        @keyframes truck-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        .truck-icon-anim { animation: truck-bounce 0.8s infinite ease-in-out; display: inline-block; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        .grayscale { filter: grayscale(1); }
     </style>
 </head>
-<body x-data="shop">
+<body x-data="shop" class="antialiased min-h-screen flex flex-col">
 
-    <nav class="sticky top-0 z-[200] bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4">
+    <a href="https://www.facebook.com/PetSmart.oficial" target="_blank" class="fb-float"><i class="fa-brands fa-facebook-f text-xl"></i></a>
+
+    <nav class="sticky top-0 z-[100] nav-blur border-b border-slate-100 px-6 py-4">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-[1000] italic uppercase tracking-tighter">
-                Pet<span class="text-indigo-600">Smart</span>
-            </h1>
-            <button @click="cartOpen = true" class="relative p-2 bg-slate-900 text-white rounded-2xl shadow-lg active:scale-90 transition-all">
-                <i class="fa-solid fa-bag-shopping"></i>
-                <span x-show="cart.length > 0" x-text="cart.length" class="absolute -top-2 -right-2 bg-indigo-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white"></span>
-            </button>
+            <div @click="handleLogoClick" class="cursor-pointer">
+                <img src="https://lh3.googleusercontent.com/d/1a34N4zgyMheifxMszHn4rE6EERoxqYW7" class="logo-custom select-none" onerror="this.src='https://via.placeholder.com/180x50?text=PETSMART+ELITE'">
+            </div>
+            <div class="flex items-center gap-4">
+                <template x-if="cart.length > 0">
+                    <div :class="timer < 300 ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-900 text-white'" class="px-4 py-2 rounded-2xl flex items-center gap-2 shadow-lg transition-all duration-500">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                        <span class="text-[11px] font-[1000] uppercase tracking-tighter" x-text="formatTime(timer)"></span>
+                    </div>
+                </template>
+                <button @click="cartOpen = true" class="relative p-3 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    <template x-if="cart.length > 0">
+                        <span x-text="cart.reduce((a, b) => a + b.qty, 0)" class="absolute -top-2 -right-2 bg-indigo-600 text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white"></span>
+                    </template>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-6 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <template x-for="p in products" :key="p.id">
-                <div @click="window.location.href='transportadores.html'" class="bg-white p-6 rounded-[45px] border border-slate-100 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-                    <div class="aspect-square mb-6 overflow-hidden rounded-[35px] bg-slate-50 flex items-center justify-center p-8">
-                        <img :src="p.variants[0].imagenColor" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
+    <main class="max-w-7xl mx-auto px-6 py-12 flex-grow w-full">
+        <div x-show="view === 'catalog'" x-transition:enter="transition ease-out duration-300">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <template x-for="p in products" :key="p.id">
+                    <div @click="openProduct(p)" class="group bg-white p-6 rounded-[45px] border border-slate-100 product-card-shadow transition-all cursor-pointer text-center">
+                        <div class="aspect-square mb-6 overflow-hidden rounded-[35px] bg-slate-50 flex items-center justify-center p-8">
+                            <img :src="p.image" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <h3 class="text-xl font-[1000] italic uppercase tracking-tighter text-slate-950" x-text="p.name"></h3>
+                        <div class="flex items-center justify-center gap-2 mt-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                            <p class="text-indigo-600 font-black uppercase text-[10px] tracking-widest">Ver Colección</p>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-black italic uppercase tracking-tighter text-slate-950" x-text="p.name"></h3>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Ver modelos disponibles</p>
+                </template>
+            </div>
+            <div class="mt-24 mb-12">
+                <div class="flex items-center justify-between mb-10 px-4">
+                    <h2 class="text-3xl font-[1000] italic uppercase tracking-tighter text-slate-950">Comunidad <span class="text-indigo-600">PetSmart</span></h2>
                 </div>
-            </template>
+                <div class="flex gap-6 overflow-x-auto pb-8 custom-scroll px-4">
+                    <template x-for="i in [1,2,3,4,5,6,7,8]" :key="i">
+                        <div class="min-w-[280px] h-[350px] bg-white rounded-[45px] overflow-hidden flex-shrink-0 shadow-lg border-4 border-white hover:-translate-y-3 transition-all duration-500 cursor-pointer relative group">
+                            <img :src="'https://picsum.photos/600/800?random=' + (i+200)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="view === 'product'" x-cloak x-transition>
+            <button @click="view = 'catalog'" class="mb-8 font-black text-xs uppercase italic text-slate-400 hover:text-indigo-600 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-arrow-left"></i> Regresar al Catálogo
+            </button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-white p-10 rounded-[50px] shadow-sm border border-slate-50">
+                <div class="aspect-square bg-slate-50 rounded-[40px] p-10 flex items-center justify-center relative overflow-hidden">
+                    <img :src="currentVariant?.img" class="max-h-full object-contain z-10 hover:scale-105 transition-transform duration-500">
+                    <div class="absolute top-10 right-10 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-100">
+                        <p class="text-[10px] font-black uppercase text-slate-400">SKU: <span class="text-slate-950" x-text="currentVariant?.sku"></span></p>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span :class="currentVariant?.stock > 0 ? 'led-pulse' : 'bg-rose-500'" class="w-2 h-2 rounded-full"></span>
+                        <span :class="currentVariant?.stock > 0 ? 'text-emerald-500' : 'text-rose-500'" class="text-[10px] font-black uppercase tracking-widest" x-text="currentVariant?.stock > 0 ? 'Disponible' : 'Agotado'"></span>
+                    </div>
+                    <h2 class="text-5xl font-[1000] italic uppercase text-slate-950 mb-6 tracking-tighter leading-none" x-text="selectedProduct?.name"></h2>
+                    <div class="mb-8">
+                        <p class="text-[10px] font-black uppercase mb-4 text-slate-400 tracking-widest">Talla:</p>
+                        <div class="flex gap-3">
+                            <template x-for="t in selectedProduct?.tallas">
+                                <button @click="currentTalla = t; updateVariant()" :class="currentTalla === t ? 'bg-indigo-600 text-white shadow-xl' : 'bg-slate-100 text-slate-400'" class="w-16 h-16 rounded-2xl text-sm font-black transition-all" x-text="t"></button>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="mb-10">
+                        <p class="text-[10px] font-black uppercase mb-4 text-slate-400 tracking-widest">Variantes:</p>
+                        <div class="flex flex-wrap gap-3">
+                            <template x-for="v in filteredVariants" :key="v.sku">
+                                <div @click="currentVariant = v" 
+                                     class="w-20 h-20 rounded-2xl bg-slate-50 border-2 cursor-pointer p-2 transition-all relative overflow-hidden" 
+                                     :class="currentVariant?.sku === v.sku ? 'border-indigo-600' : 'border-transparent'">
+                                    <img :src="v.img" :class="v.stock <= 0 ? 'grayscale opacity-30' : ''" class="w-full h-full object-contain rounded-lg">
+                                    <template x-if="v.stock <= 0">
+                                        <div class="absolute inset-0 flex items-center justify-center bg-white/40">
+                                            <span class="text-[8px] font-black uppercase text-rose-600 bg-white/80 px-1 rounded">Agotado</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="flex items-end gap-3 mb-10">
+                        <span class="text-5xl font-[1000] text-slate-950 italic" x-text="'S/ ' + currentVariant?.price.toFixed(2)"></span>
+                    </div>
+                    <button @click="addToCart" :disabled="!currentVariant || currentVariant.stock <= 0" :class="!currentVariant || currentVariant.stock <= 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-slate-950'" class="w-full py-8 text-white rounded-[2.5rem] font-[1000] uppercase italic tracking-widest active:scale-95 transition-all shadow-2xl">Añadir al Pedido</button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="view === 'admin'" x-cloak x-transition class="space-y-10">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="text-4xl font-[1000] italic uppercase tracking-tighter text-slate-950">Panel <span class="text-indigo-600">Admin</span></h2>
+                <div class="flex gap-4">
+                    <button @click="saveInventory" class="px-6 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase italic hover:bg-emerald-700 transition-all">Guardar</button>
+                    <button @click="view = 'catalog'" class="px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase italic hover:bg-indigo-600 transition-all">Salir</button>
+                </div>
+            </div>
+            <div class="space-y-12">
+                <template x-for="p in products" :key="p.id">
+                    <div class="bg-white p-8 rounded-[45px] shadow-sm border border-slate-100">
+                        <div class="flex items-center gap-4 mb-8 border-b border-slate-50 pb-4">
+                            <img :src="p.image" class="w-12 h-12 object-contain bg-slate-50 rounded-2xl p-2">
+                            <h3 class="text-xl font-[1000] uppercase italic text-slate-950" x-text="p.name"></h3>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            <template x-for="v in p.variants" :key="v.sku">
+                                <div class="bg-slate-50 p-4 rounded-[30px] border border-slate-100 flex flex-col items-center group hover:bg-white hover:shadow-md transition-all">
+                                    <div class="w-16 h-16 mb-3 bg-white rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-50">
+                                        <img :src="v.img" class="w-full h-full object-contain p-1 group-hover:scale-110 transition-transform">
+                                    </div>
+                                    <p class="text-[9px] font-black text-slate-500 uppercase text-center truncate w-full" x-text="v.variantName"></p>
+                                    <p class="text-[9px] font-black text-indigo-600 uppercase mb-1" x-text="'TALLA ' + v.talla"></p>
+                                    <p class="text-[7px] text-slate-300 text-center mb-4 font-bold" x-text="v.sku"></p>
+                                    <div class="relative w-full">
+                                        <input type="number" x-model="v.stock" class="w-full text-center bg-white border border-slate-200 rounded-xl py-2 px-1 text-xs font-black text-indigo-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-inner">
+                                        <span class="absolute -top-2 -right-1 bg-indigo-600 text-white text-[7px] px-1.5 rounded-full font-bold">STK</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
     </main>
 
-    <div x-show="cartOpen" class="fixed inset-0 z-[300]" x-cloak>
-        <div x-show="cartOpen" x-transition.opacity class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" @click="cartOpen = false"></div>
-
-        <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.1)]"
-             x-show="cartOpen" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0">
-            
-            <div class="p-6 pb-8 border-b border-slate-900 flex flex-col items-center relative bg-slate-950 text-white overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-full opacity-10">
-                    <i class="fa-solid fa-paw absolute -top-5 -left-5 text-[120px] rotate-12"></i>
+    <footer class="footer-bg text-white pt-24 pb-12 px-6 mt-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+                <div class="space-y-8">
+                    <h4 class="text-2xl font-black italic">PETSMART <span class="text-indigo-500">ELITE</span></h4>
+                    <p class="text-slate-400 text-[10px] font-black uppercase leading-loose tracking-[0.1em]">La primera boutique de transporte de lujo para mascotas en Lima.</p>
                 </div>
-                <div class="mb-6 flex flex-col items-center relative z-10">
-                    <span class="text-[9px] font-[1000] text-indigo-400 uppercase tracking-[0.4em] mb-3 animate-pulse">¡Queda poco tiempo!</span>
-                    <div class="bg-indigo-600/10 border border-indigo-500/30 px-5 py-2 rounded-full flex items-center gap-4 backdrop-blur-md">
-                        <i class="fa-solid fa-dog text-indigo-400 animate-bounce text-xs"></i>
-                        <span class="text-xl font-black tracking-[0.2em] text-white tabular-nums" x-text="countdown.m + ':' + countdown.s"></span>
-                        <i class="fa-solid fa-cat text-indigo-400 animate-bounce text-xs"></i>
+                <div>
+                    <h4 class="text-indigo-500 font-black uppercase italic text-xs mb-8 tracking-widest border-l-4 border-indigo-500 pl-4">Menú</h4>
+                    <ul class="space-y-4 text-[10px] font-black uppercase text-slate-400">
+                        <li>Envíos a Domicilio</li>
+                        <li>Puntos de Entrega</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-indigo-500 font-black uppercase italic text-xs mb-8 tracking-widest border-l-4 border-indigo-500 pl-4">Atención</h4>
+                    <ul class="space-y-4 text-[10px] font-black uppercase text-slate-400">
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-phone text-indigo-500"></i> +51 984 464 009</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-indigo-500 font-black uppercase italic text-xs mb-8 tracking-widest border-l-4 border-indigo-500 pl-4">Social</h4>
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center"><i class="fa-brands fa-instagram text-xl"></i></div>
+                        <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center"><i class="fa-brands fa-tiktok text-xl"></i></div>
                     </div>
                 </div>
-                <div class="text-center relative z-10">
-                    <h2 class="text-2xl font-[1000] italic uppercase tracking-tighter leading-none mb-3">Pet<span class="text-indigo-600">Smart</span></h2>
-                    <p class="text-[9px] font-light text-slate-500 uppercase tracking-[0.4em] mt-4">Mi Carrito</p>
+            </div>
+            <div class="border-t border-white/5 pt-12 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">© 2026 PETSMART ELITE. BASE SEGURA 0.3</p>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] italic">Desarrollado por Milagros Huamani</p>
+            </div>
+        </div>
+    </footer>
+
+    <div x-show="cartOpen" class="fixed inset-0 z-[200]" x-cloak>
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md" @click="cartOpen = false"></div>
+        <div class="absolute inset-y-0 right-0 w-full max-w-sm bg-slate-950 text-white flex flex-col shadow-2xl transition-all" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="translate-x-full">
+            <div class="p-6 flex-1 overflow-y-auto custom-scroll">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-xl font-[1000] italic uppercase tracking-tighter">Bolsa <span class="text-indigo-500">Elite</span></h2>
+                    <button @click="cartOpen = false" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
                 </div>
-                <button @click="cartOpen = false" class="absolute top-4 right-4 w-8 h-8 rounded-full border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                <div x-show="cart.length > 0" class="mb-10 px-2">
+                    <div class="flex justify-between items-end mb-2">
+                        <p class="text-[9px] font-black uppercase italic" :class="subtotal < 75 ? 'text-indigo-400' : 'text-emerald-400'">
+                            <template x-if="!express">
+                                <span x-show="subtotal < 75">Te faltan S/ <span x-text="(75 - subtotal).toFixed(2)"></span> para delivery gratis</span>
+                            </template>
+                            <template x-if="!express">
+                                <span x-show="subtotal >= 75">¡Envío gratis activado!</span>
+                            </template>
+                            <template x-if="express">
+                                <span class="text-indigo-400">El envío express recibe tu producto hoy mismo</span>
+                            </template>
+                        </p>
+                        <i class="fa-solid fa-truck-fast text-xs" :class="(subtotal >= 75 && !express) ? 'text-emerald-400' : 'text-indigo-400'"></i>
+                    </div>
+                    <div class="h-1 bg-white/10 rounded-full relative">
+                        <div class="absolute top-0 left-0 h-full bg-indigo-500 transition-all duration-700 rounded-full" :style="'width: ' + (express ? 0 : Math.min((subtotal/75)*100, 100)) + '%'">
+                            <div class="absolute right-0 -top-3.5 truck-icon-anim">
+                                <i class="fa-solid fa-truck-fast text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <template x-for="(item, index) in cart" :key="item.sku">
+                        <div class="flex items-center gap-3 bg-white/5 p-3 rounded-[25px] border border-white/10">
+                            <div class="w-14 h-14 bg-white rounded-2xl p-1 flex-shrink-0">
+                                <img :src="item.img" class="w-full h-full object-contain">
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-[10px] font-black uppercase text-white truncate" x-text="item.name"></h4>
+                                <p class="text-[9px] text-slate-500 font-bold" x-text="'TALLA ' + item.talla"></p>
+                                <div class="flex items-center gap-3 mt-1.5">
+                                    <div class="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-full border border-white/5">
+                                        <button @click="changeQty(index, -1)" class="text-xs font-bold text-indigo-400">-</button>
+                                        <span class="text-[10px] font-black text-white" x-text="item.qty"></span>
+                                        <button @click="changeQty(index, 1)" class="text-xs font-bold text-indigo-400">+</button>
+                                    </div>
+                                    <button @click="removeProduct(index)" class="text-[9px] font-black text-rose-500 uppercase tracking-widest">Eliminar</button>
+                                </div>
+                            </div>
+                            <div class="text-sm font-[1000] italic text-white" x-text="'S/ ' + (item.price * item.qty).toFixed(2)"></div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="cart.length > 0" class="mt-10 space-y-4">
+                    <p class="text-[9px] font-black uppercase text-slate-500 mb-2 tracking-widest">Datos de Entrega Obligatorios:</p>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button @click="express = false" :class="!express ? 'bg-indigo-600' : 'bg-white/5'" class="py-3 rounded-xl text-[10px] font-black uppercase">Estándar</button>
+                        <button @click="toggleExpress()" :class="express ? 'bg-indigo-600 animate-pulse' : 'bg-white/5'" class="py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> Express
+                        </button>
+                    </div>
+                    <select x-model="selectedDistrito" @change="deliveryType='distrito'; selectedEstacion=''" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase outline-none text-slate-300">
+                        <option value="" class="bg-slate-950 italic">-- Seleccionar Distrito --</option>
+                        <template x-for="d in distritos"><option :value="d.name" x-text="d.name" class="bg-slate-950"></option></template>
+                    </select>
+                    <select x-model="selectedEstacion" @change="deliveryType='estacion'; selectedDistrito=''" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase outline-none text-slate-300">
+                        <option value="" class="bg-slate-950 italic">-- Seleccionar Estación --</option>
+                        <template x-for="e in estaciones"><option :value="e.name" x-text="e.name" class="bg-slate-950"></option></template>
+                    </select>
+                    <div class="space-y-2">
+                        <p class="text-[9px] font-black uppercase text-slate-500 tracking-widest">Fecha de Entrega:</p>
+                        <input type="date" x-model="deliveryDate" :min="minDate" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase outline-none text-slate-300 [color-scheme:dark]">
+                    </div>
+                </div>
+            </div>
+            <div class="p-8 bg-white/5 border-t border-white/10" x-show="cart.length > 0">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Total Pedido</p>
+                        <p class="text-2xl font-[1000] italic text-white" x-text="'S/ ' + total.toFixed(2)"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] font-black text-slate-500 uppercase">Envío</p>
+                        <p class="text-sm font-bold text-indigo-400" x-text="displayDeliveryText"></p>
+                    </div>
+                </div>
+                <button @click="openCheckout" :disabled="!isSelectionComplete" :class="isSelectionComplete ? 'bg-indigo-600 hover:bg-white hover:text-indigo-600' : 'bg-slate-800 text-slate-500 cursor-not-allowed'" class="w-full py-5 text-white rounded-[2rem] font-[1000] uppercase italic text-xs tracking-[0.2em] shadow-2xl transition-all">
+                    <span x-text="isSelectionComplete ? 'Pagar Ahora' : 'Completa los datos'"></span>
                 </button>
             </div>
+        </div>
+    </div>
 
-            <div class="flex-1 p-8 overflow-y-auto space-y-4 scrollbar-hide bg-slate-50/20">
-                <template x-for="(item, index) in cart" :key="index">
-                    <div class="bg-white p-5 rounded-[35px] flex items-center gap-5 border border-slate-100 shadow-sm transition-all hover:scale-[1.02]">
-                        <div class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center p-3">
-                            <img :src="item.imagenColor" class="w-full h-full object-contain" />
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-[12px] font-black text-slate-900 uppercase italic" x-text="item.name"></p>
-                            <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-1" x-text="item.selectedColorName"></p>
-                            <div class="flex items-center gap-3 mt-3 bg-slate-100 w-fit rounded-full px-2 py-1 border border-slate-200">
-                                <button @click="updateQuantity(index, 'minus')" class="w-7 h-7 flex items-center justify-center bg-white rounded-full shadow-sm font-black active:scale-90"><i class="fa-solid fa-minus scale-75"></i></button>
-                                <span class="text-[12px] font-black text-slate-800 min-w-[24px] text-center" x-text="item.quantity"></span>
-                                <button @click="updateQuantity(index, 'plus')" class="w-7 h-7 flex items-center justify-center bg-white rounded-full shadow-sm font-black active:scale-90"><i class="fa-solid fa-plus scale-75"></i></button>
-                            </div>
-                            <p class="text-lg font-black mt-2 text-slate-950 italic" x-text="'S/ ' + (item.price * item.quantity).toFixed(2)"></p>
-                        </div>
-                        <button @click="removeFromCart(index)" class="text-slate-200 hover:text-rose-500 px-4"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                </template>
-
-                <div x-show="cart.length > 0" class="mt-10 space-y-3 bg-white p-8 rounded-[45px] border border-slate-100 shadow-inner">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center mb-4 italic">Detalles de Entrega</p>
-                    <select x-model="selectedDistrito" @change="handleLocationChange('distrito')" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black text-slate-700 outline-none ring-1 ring-slate-100 focus:ring-indigo-500 transition-all uppercase">
-                        <option value="">Distrito...</option>
-                        <template x-for="d in distritos" :key="d.nombre"><option :value="d.nombre" x-text="d.nombre"></option></template>
-                    </select>
-                    <select x-model="selectedEstacion" @change="handleLocationChange('estacion')" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black text-slate-700 outline-none ring-1 ring-slate-100 focus:ring-indigo-500 transition-all uppercase">
-                        <option value="">Estación del Tren...</option>
-                        <template x-for="e in estaciones" :key="e.nombre"><option :value="e.nombre" x-text="e.nombre"></option></template>
-                    </select>
-                    <input type="date" x-model="deliveryDate" :min="minDate" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-black text-slate-700 ring-1 ring-slate-100 focus:ring-indigo-500 outline-none transition-all" />
+    <div x-show="payOpen" class="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-10" x-cloak>
+        <div class="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" @click="payOpen = false"></div>
+        <div class="relative bg-white w-full max-w-4xl h-[650px] rounded-[50px] overflow-hidden flex flex-col md:flex-row shadow-2xl">
+            <button @click="payOpen = false" class="absolute top-6 right-8 z-50 text-slate-300 hover:text-slate-950 transition-colors">
+                <i class="fa-solid fa-circle-xmark text-3xl"></i>
+            </button>
+            
+            <div class="w-full md:w-72 bg-slate-50 payment-sidebar flex flex-col p-8">
+                <h3 class="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Método de Pago</h3>
+                <div class="flex flex-col gap-3">
+                    <button @click="payMethod = 'yape'" :class="payMethod === 'yape' ? 'tab-active' : 'bg-white text-slate-600'" class="flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all gap-2 group">
+                        <img src="https://lh3.googleusercontent.com/d/1eTBXMTfDiAPeKDuRldQPtTa5V-OXO9OZ" class="h-8">
+                        <span class="text-[9px] font-black uppercase">Yape</span>
+                    </button>
+                    <button @click="payMethod = 'banco'" :class="payMethod === 'banco' ? 'tab-active' : 'bg-white text-slate-600'" class="flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all gap-2 group">
+                        <i class="fa-solid fa-building-columns text-xl opacity-60"></i>
+                        <span class="text-[9px] font-black uppercase">Transferencia</span>
+                    </button>
+                    <button @click="payMethod = 'entrega'" :class="payMethod === 'entrega' ? 'tab-active' : 'bg-white text-slate-600'" class="flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all gap-2 group">
+                        <i class="fa-solid fa-hand-holding-dollar text-xl opacity-60"></i>
+                        <span class="text-[9px] font-black uppercase">Contra Entrega</span>
+                    </button>
+                </div>
+                <div class="mt-auto pt-6 border-t border-slate-200">
+                    <p class="text-[9px] font-black uppercase text-slate-400 mb-1">Total Final:</p>
+                    <p class="text-2xl font-[1000] italic text-slate-950" x-text="'S/ ' + total.toFixed(2)"></p>
                 </div>
             </div>
 
-            <div class="p-6 bg-white border-t border-slate-50" x-show="cart.length > 0">
-                <div class="space-y-1.5 mb-5">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <span>Subtotal</span>
-                        <span class="text-slate-900" x-text="'S/ ' + subtotal"></span>
-                    </div>
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <span>Envío</span>
-                        <span class="text-indigo-500" x-text="'S/ ' + costoEnvio"></span>
-                    </div>
-                    <div class="pt-3 flex justify-between items-baseline border-t border-slate-100">
-                        <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Total Final</span>
-                        <span class="text-2xl font-[1000] italic text-slate-950 tracking-tighter" x-text="'S/ ' + total"></span>
+            <div class="flex-1 bg-white p-8 md:p-12 overflow-y-auto flex flex-col justify-center text-center">
+                <div x-show="payMethod === 'yape'" x-transition class="space-y-6">
+                    <div class="bg-indigo-50 p-6 rounded-[40px] inline-block border border-indigo-100"><img src="https://lh3.googleusercontent.com/d/1R2QQ-IPMyFVSbjx6idOIYQ8F6LMYcErX" class="w-40 h-40 rounded-2xl mx-auto"></div>
+                    <h4 class="text-2xl font-[1000] text-slate-950 italic uppercase tracking-tighter">984464009</h4>
+                    <p class="text-[10px] font-black uppercase text-indigo-600">Milagros Huamani</p>
+                    <button @click="navigator.clipboard.writeText('984464009'); alert('Número Copiado')" class="mt-4 px-6 py-2 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest">Copiar Número</button>
+                </div>
+                <div x-show="payMethod === 'banco'" x-transition class="text-left space-y-4">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase text-center mb-4">Cuentas Locales:</p>
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                        <div><p class="text-[9px] font-black text-indigo-500 uppercase">BCP SOLES</p><p class="text-xs font-black text-slate-950">192-9408105-0-62</p></div>
+                        <button @click="navigator.clipboard.writeText('192-9408105-0-62')"><i class="fa-solid fa-copy text-slate-300"></i></button>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-2">
-                    <button @click="qrYapeOpen = true" :disabled="!isReady" :class="isReady ? 'bg-[#7424b3] shadow-lg shadow-purple-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'" class="w-full text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-qr-code text-[10px]"></i> Pagar con Yape
-                    </button>
-                    <button @click="sendWhatsApp" :disabled="!isReady" :class="isReady ? 'bg-slate-950 shadow-xl shadow-slate-200' : 'bg-slate-100 text-slate-400 cursor-not-allowed'" class="w-full text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-whatsapp text-xs"></i> Confirmar WhatsApp
-                    </button>
+                <div x-show="payMethod === 'entrega'" x-transition class="space-y-6">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                    <p class="text-xs font-bold text-slate-500 leading-relaxed max-w-sm mx-auto">Requiere anticipo de S/ 5 para agendar. Cancela el resto al recibir su pedido.</p>
+                </div>
+                <div class="mt-12">
+                    <button @click="sendWhatsApp" class="w-full py-6 bg-slate-950 text-white rounded-[2.5rem] font-[1000] uppercase italic text-xs tracking-widest shadow-2xl hover:bg-indigo-600 transition-all">Finalizar por WhatsApp</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div x-show="qrYapeOpen" class="fixed inset-0 z-[400] flex items-center justify-center p-6" x-transition.opacity x-cloak>
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" @click="qrYapeOpen = false"></div>
-        <div class="bg-white w-full max-w-sm rounded-[45px] overflow-hidden relative shadow-3xl p-10 text-center">
-            <h3 class="text-2xl font-black text-slate-950 italic tracking-tighter uppercase mb-4">Pago con Yape</h3>
-            <div class="bg-slate-50 border border-slate-100 rounded-[40px] p-8 mb-4 shadow-inner">
-                <img src="URL_DE_TU_QR_AQUI" class="w-full aspect-square object-contain mix-blend-multiply" />
-            </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Número de celular</p>
-            <p class="text-3xl font-black text-slate-950 tracking-widest mb-4">984 464 009</p>
-            <p class="text-5xl font-black italic text-slate-950" x-text="'S/ ' + total"></p>
-            <button @click="sendWhatsApp" class="mt-6 w-full bg-[#25d366] text-white py-5 rounded-[22px] font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">Enviar Comprobante</button>
+    <div x-show="isAdminModal" x-transition.opacity class="fixed inset-0 z-[500] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm" x-cloak>
+        <div class="bg-white p-8 rounded-[40px] w-full max-w-[320px] shadow-2xl text-center" @click.away="isAdminModal = false">
+            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Acceso Admin PetSmart</h3>
+            <input type="password" x-model="adminPass" placeholder="Contraseña Maestra" class="w-full bg-slate-100 border-none rounded-2xl p-4 text-center text-sm mb-4 outline-none focus:ring-2 focus:ring-indigo-600 transition-all">
+            <button @click="loginAdmin" class="w-full bg-slate-900 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all">Ingresar</button>
         </div>
     </div>
 
-<script>
-    document.addEventListener("alpine:init", () => {
-        Alpine.data("shop", () => ({
-            cartOpen: false,
-            qrYapeOpen: false,
-            // Carga inicial desde localStorage
-            cart: JSON.parse(localStorage.getItem('cart')) || [],
-            selectedDistrito: localStorage.getItem('selectedDistrito') || "",
-            selectedEstacion: localStorage.getItem('selectedEstacion') || "",
-            deliveryDate: localStorage.getItem('deliveryDate') || "",
-            
-            countdown: { m: '20', s: '00' },
-            costoEnvio: 0,
-            subtotal: 0,
-            total: 0,
-            minDate: "",
-            
-            distritos: [
-                { nombre: "Miraflores", envio: 10 },
-                { nombre: "Surco", envio: 10 },
-                { nombre: "S.J.M.", envio: 8 },
-                { nombre: "VMT.", envio: 8 },
-            ],
-            estaciones: [
-                { nombre: "Estación Angamos", envio: 5 },
-                { nombre: "Estación Atocongo", envio: 5 },
-                { nombre: "Estación La Cultura", envio: 5 },
-            ],
-            
-            products: [
-                { id: 1, name: "Transportadores", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 2, name: "Rascadores", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 3, name: "Comederos", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 4, name: "Bebederos", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 5, name: "Camas", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 6, name: "Areneros", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 7, name: "Accesorios", variants: [{ imagenColor: "https://via.placeholder.com/150" }] },
-                { id: 8, name: "Alimento", variants: [{ imagenColor: "https://via.placeholder.com/150" }] }
-            ],
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCThT_r5Yxo00UsjNOemZ7dqSluNI33IuE",
+            authDomain: "petsmart2026-5a358.firebaseapp.com",
+            projectId: "petsmart2026-5a358",
+            storageBucket: "petsmart2026-5a358.firebasestorage.app",
+            messagingSenderId: "426151277613",
+            appId: "1:426151277613:web:d6ed92602fc405b42cf4a4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-            init() {
-                // Configurar fecha mínima
-                const now = new Date();
-                if (now.getHours() >= 12) now.setDate(now.getDate() + 1);
-                this.minDate = now.toISOString().split("T")[0];
-                if(!this.deliveryDate) this.deliveryDate = this.minDate;
+        document.addEventListener("alpine:init", () => {
+            Alpine.data("shop", () => ({
+                view: 'catalog', cartOpen: false, payOpen: false, selectedProduct: null, 
+                currentTalla: '', currentVariant: null, payMethod: 'yape', express: false,
+                cart: JSON.parse(localStorage.getItem('cart')) || [],
+                timer: parseInt(localStorage.getItem('cart_time')) || 1200,
+                selectedDistrito: '', selectedEstacion: '', deliveryType: '', deliveryDate: '',
+                isAdminModal: false, adminPass: '', logoClicks: 0,
+                distritos: [
+                    {name:'Surco', cost:10}, {name:'Miraflores', cost:10}, {name:'San Borja', cost:10}, 
+                    {name:'La Molina', cost:12}, {name:'Surquillo', cost:10}, {name:'Lince', cost:10},
+                    {name:'San Isidro', cost:12}, {name:'Barranco', cost:12}, {name:'Chorrillos', cost:8}
+                ],
+                estaciones: [
+                    {name:'Est. Angamos', cost:5}, {name:'Est. Cabitos', cost:5}, {name:'Est. Ayacucho', cost:5}, 
+                    {name:'Est. Central', cost:7}, {name:'Est. Matellini', cost:5}, {name:'Est. Naranjal', cost:7}
+                ],
+                products: [
+                    { id: 1, name: "Transportadores Elite", image: "https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l", tallas: ['S', 'M', 'L','XL'], variants: [
+                        { sku: "TR-S-MO", talla: 'S', variantName: "Morado", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l" },
+                        { sku: "TR-S-VD", talla: 'S', variantName: "Verde Diseño", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1xNKzpVAIes7Xw8GCyD6fGlMkNhTtNjOJ" },
+                        { sku: "TR-S-AD", talla: 'S', variantName: "Azul Diseño", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1ggiiMd8M4t3BcsTWuydvJYGZbyyjotaU" },
+                        { sku: "TR-S-RD", talla: 'S', variantName: "Rojo Diseño", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1dxdbDTl1HiSDyDit5QmPDwGz57w0SxrE" },
+                        { sku: "TR-M-MO", talla: 'M', variantName: "Morado Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1Mgp9xvTLG7TlLpvdRSEiRFqUw5L0QwnB" },
+                        { sku: "TR-M-AZ", talla: 'M', variantName: "Azul Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1fFJP4P03osjlCdyONHJwRUTyimu29C2x" },
+                        { sku: "TR-M-RJ", talla: 'M', variantName: "Rojo Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1SntyoP5CDOuFTr2VpZ3fC1Xq1v94JCfk" },
+                        { sku: "TR-M-VD", talla: 'M', variantName: "Verde Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1lL6oe2OeLSC0mir7K0azipesDX5KUxye" },
+                        { sku: "TR-M-BG", talla: 'M', variantName: "Beige Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1GLdi7agLeD1byYo2TUsUcXSdQhnofumF" },
+                        { sku: "TR-M-R", talla: 'M', variantName: "Rojo", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1ZHkhE3BW-XnzLDRJZSLWX-Zn4ksXUKg1" },
+                        { sku: "TR-M-RD", talla: 'M', variantName: "Rojo Diseño", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1pdA5aP0vZikiF9ORO8ahv3WTCh88hY_g" },
+                        { sku: "TR-L-AC", talla: 'L', variantName: "Acero Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1UmTCLOkVtA_s7EsY2EdLKFcJbYnuB2Lp" },
+                        { sku: "TR-L-RJ", talla: 'L', variantName: "Rojo Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1Qf9p4nr9R6yUqbjnys0nRlcSMfQhwTfG" },
+                        { sku: "TR-L-RS", talla: 'L', variantName: "Rosa Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1OzeFzQQfPIyNbV_5lDyB5oYnaM-6vZOd" },
+                        { sku: "TR-L-GS", talla: 'L', variantName: "Gris Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1uxOcD5oS0SfG_xaasAxHQbc9KP3XysqT" },
+                        { sku: "TR-L-GD", talla: 'L', variantName: "Gris Diseño", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1HnOqGtylronP1je_Y1YfqOf9QapuPSrl" },
+                        { sku: "TR-L-MD", talla: 'L', variantName: "Marron Diseño", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1wglyp8HI1qDFKv3n-VGZfICphWWfHOUh" },
+                        { sku: "TR-XL-AZ", talla: 'XL', variantName: "Rojo Diseño", price: 62, stock: 1, img: "https://lh3.googleusercontent.com/d/" },
+                    ]},
+                    { id: 2, name: "Camas Premium Soft", image: "https://via.placeholder.com/350?text=Cama+Elite", tallas: ['M', 'L'], variants: [
+                        { sku: "CA-M-RJ", talla: 'M', variantName: "Rojo", price: 85, stock: 10, img: "https://via.placeholder.com/250" }
+                    ]},
+                    { id: 3, name: "Medias de Lujo", image: "https://via.placeholder.com/350?text=Medias", tallas: ['M', 'L'], variants: [
+                        { sku: "MD-M-J", talla: 'M', variantName: "Classic", price: 15, stock: 10, img: "https://via.placeholder.com/250" }
+                    ]},
+                    { id: 4, name: "Rascadores", image: "https://via.placeholder.com/350?text=Rascador", tallas: ['L'], variants: [
+                        { sku: "RC-L-J", talla: 'L', variantName: "Torre", price: 120, stock: 5, img: "https://via.placeholder.com/250" }
+                    ]}
+                ],
 
-                // Observar cambios en el carrito para guardar y calcular
-                this.$watch('cart', (val) => {
-                    localStorage.setItem('cart', JSON.stringify(val));
-                    this.calculateTotals();
-                });
-
-                // Carga inicial de totales y envío
-                this.updateCostoEnvioManual();
-                this.calculateTotals();
-                this.setupTimer();
-            },
-
-            updateCostoEnvioManual() {
-                if (this.selectedDistrito) {
-                    const d = this.distritos.find(i => i.nombre === this.selectedDistrito);
-                    this.costoEnvio = d ? d.envio : 0;
-                } else if (this.selectedEstacion) {
-                    const e = this.estaciones.find(i => i.nombre === this.selectedEstacion);
-                    this.costoEnvio = e ? e.envio : 0;
-                } else {
-                    this.costoEnvio = 0;
-                }
-            },
-
-            handleLocationChange(type) {
-                if (type === "distrito") {
-                    this.selectedEstacion = "";
-                    localStorage.setItem('selectedEstacion', "");
-                    localStorage.setItem('selectedDistrito', this.selectedDistrito);
-                } else {
-                    this.selectedDistrito = "";
-                    localStorage.setItem('selectedDistrito', "");
-                    localStorage.setItem('selectedEstacion', this.selectedEstacion);
-                }
-                this.updateCostoEnvioManual();
-                this.calculateTotals();
-            },
-
-            calculateTotals() {
-                // Forzamos que el subtotal sume correctamente
-                this.subtotal = this.cart.reduce((sum, item) => {
-                    const price = parseFloat(item.price) || 0;
-                    return sum + (price * item.quantity);
-                }, 0);
-                this.total = this.subtotal + this.costoEnvio;
-            },
-
-            updateQuantity(index, action) {
-                if (action === 'plus') this.cart[index].quantity++;
-                else if (this.cart[index].quantity > 1) this.cart[index].quantity--;
-                
-                // Clonamos el array para que Alpine detecte el cambio profundo
-                this.cart = [...this.cart];
-            },
-
-            removeFromCart(index) {
-                this.cart.splice(index, 1);
-                this.cart = [...this.cart];
-            },
-
-            setupTimer() {
-                let segundosRestantes = 20 * 60;
-                setInterval(() => {
-                    if (segundosRestantes > 0) {
-                        segundosRestantes--;
-                        this.countdown.m = Math.floor(segundosRestantes / 60).toString().padStart(2, '0');
-                        this.countdown.s = (segundosRestantes % 60).toString().padStart(2, '0');
+                get minDate() {
+                    let now = new Date();
+                    
+                    // Si ya pasó el mediodía (12:00 PM), la entrega mínima es mañana
+                    if (now.getHours() >= 12) {
+                        now.setDate(now.getDate() + 1);
                     }
-                }, 1000);
-            },
+                    
+                    // Formateamos la fecha manualmente usando la hora LOCAL (Perú)
+                    // Esto evita que el calendario se adelante por la zona horaria ISO
+                    let anio = now.getFullYear();
+                    let mes = String(now.getMonth() + 1).padStart(2, '0');
+                    let dia = String(now.getDate()).padStart(2, '0');
+                    
+                    return `${anio}-${mes}-${dia}`;
+                },
+                get isSelectionComplete() {
+                    return (this.selectedDistrito !== '' || this.selectedEstacion !== '') && this.deliveryDate !== '';
+                },
+                get subtotal() { return this.cart.reduce((s, i) => s + (i.price * i.qty), 0); },
+                get deliveryCost() {
+                    let cost = 0;
+                    if (this.express) {
+                        if (this.deliveryType === 'distrito') cost = this.distritos.find(d => d.name === this.selectedDistrito)?.cost || 0;
+                        else if (this.deliveryType === 'estacion') cost = this.estaciones.find(e => e.name === this.selectedEstacion)?.cost || 0;
+                        return cost + 10;
+                    }
+                    if (this.subtotal >= 75 || this.subtotal === 0) return 0;
+                    if (this.deliveryType === 'distrito') cost = this.distritos.find(d => d.name === this.selectedDistrito)?.cost || 0;
+                    else if (this.deliveryType === 'estacion') cost = this.estaciones.find(e => e.name === this.selectedEstacion)?.cost || 0;
+                    return cost;
+                },
+                get displayDeliveryText() {
+                    if (this.subtotal >= 75 && !this.express) return 'GRATIS';
+                    if (!this.selectedDistrito && !this.selectedEstacion) return '---';
+                    return 'S/ ' + this.deliveryCost.toFixed(2);
+                },
+                get total() { return this.subtotal + this.deliveryCost; },
+                get filteredVariants() { return this.selectedProduct ? this.selectedProduct.variants.filter(v => v.talla === this.currentTalla) : []; },
 
-            get isReady() {
-                return (this.selectedDistrito !== "" || this.selectedEstacion !== "") && this.cart.length > 0;
-            },
-
-            sendWhatsApp() {
-                const texto = `Hola PetSmart, quiero confirmar mi pedido. Total: S/ ${this.total}`;
-                window.open(`https://wa.me/51984464009?text=${encodeURIComponent(texto)}`, '_blank');
-            }
-        }));
-    });
-</script>
+                init() {
+                    setInterval(() => { if (this.cart.length > 0) { this.timer--; if (this.timer <= 0) this.clearCartByTimer(); } }, 1000);
+                    this.$watch('cart', v => localStorage.setItem('cart', JSON.stringify(v)));
+                    this.$watch('timer', v => localStorage.setItem('cart_time', v));
+                },
+                toggleExpress() {
+                    let now = new Date();
+                    let hour = now.getHours();
+                    // Solo permite Express entre 10 AM y 3 PM (15:00)
+                    if (hour >= 10 && hour < 15) {
+                        this.express = !this.express;
+                    } else {
+                        alert("El servicio Express solo está disponible de 10:00 AM a 3:00 PM para entrega hoy mismo.");
+                        this.express = false;
+                    }
+                },
+                handleLogoClick() {
+                    this.logoClicks++;
+                    if (this.logoClicks >= 5) { this.isAdminModal = true; this.logoClicks = 0; }
+                    setTimeout(() => { this.logoClicks = 0; }, 3000);
+                },
+                async loginAdmin() {
+                    try {
+                        await auth.signInWithEmailAndPassword("informes.petsmart@gmail.com", this.adminPass);
+                        this.isAdminModal = false; this.view = 'admin';
+                    } catch (e) { alert("Error: Contraseña Incorrecta"); }
+                },
+                async saveInventory() {
+                    try {
+                        for (const p of this.products) {
+                            for (const v of p.variants) {
+                                await this.updateFirebaseStock(v.sku, v.stock);
+                            }
+                        }
+                        alert("Inventario guardado y actualizado en la nube correctamente.");
+                    } catch (e) {
+                        alert("Error al guardar inventario.");
+                    }
+                },
+                async updateFirebaseStock(sku, stock) {
+                    try {
+                        await db.collection("stock").doc(sku).set({ stock: parseInt(stock) });
+                    } catch (e) { console.error("Firebase Error", e); }
+                },
+                formatTime(s) { const m = Math.floor(s / 60); const sec = s % 60; return `${m}:${sec < 10 ? '0' : ''}${sec}`; },
+                clearCartByTimer() { 
+                    // Al limpiar por tiempo, devolvemos el stock
+                    this.cart.forEach(item => {
+                        let product = this.products.find(p => p.name === item.name);
+                        let variant = product?.variants.find(v => v.sku === item.sku);
+                        if (variant) variant.stock += item.qty;
+                    });
+                    this.cart = []; this.timer = 1200; localStorage.clear(); this.cartOpen = false; 
+                },
+                openProduct(p) { this.selectedProduct = p; this.currentTalla = p.tallas[0]; this.updateVariant(); this.view = 'product'; window.scrollTo(0,0); },
+                updateVariant() { this.currentVariant = this.filteredVariants[0] || null; },
+                addToCart() {
+                    if (!this.currentVariant || this.currentVariant.stock <= 0) return;
+                    let existing = this.cart.find(i => i.sku === this.currentVariant.sku);
+                    if (existing) { existing.qty++; } else { this.cart.push({ ...this.currentVariant, name: this.selectedProduct.name, qty: 1 }); }
+                    this.currentVariant.stock--; this.timer = 1200; this.cartOpen = true;
+                },
+                changeQty(index, n) {
+                    let item = this.cart[index];
+                    let product = this.products.find(p => p.name === item.name);
+                    let variant = product?.variants.find(v => v.sku === item.sku);
+                    if (n > 0) { if (variant && variant.stock > 0) { item.qty++; variant.stock--; } } 
+                    else { item.qty--; if (variant) variant.stock++; if (item.qty <= 0) this.cart.splice(index, 1); }
+                },
+                removeProduct(index) {
+                    let item = this.cart[index];
+                    let product = this.products.find(p => p.name === item.name);
+                    let variant = product?.variants.find(v => v.sku === item.sku);
+                    if (variant) variant.stock += item.qty;
+                    this.cart.splice(index, 1);
+                },
+                openCheckout() { if (this.isSelectionComplete) this.payOpen = true; },
+                sendWhatsApp() {
+                    let text = `✨ *NUEVO PEDIDO - PETSMART ELITE* ✨\n\n`;
+                    this.cart.forEach(i => { text += `• ${i.name} (${i.talla}) x${i.qty} - S/ ${(i.price * i.qty).toFixed(2)}\n`; });
+                    text += `\n--------------------------\n`;
+                    text += `📌 *Entrega:* ${this.selectedDistrito || this.selectedEstacion} ${this.express ? '(EXPRESS ⚡)' : '(ESTÁNDAR)'}\n`;
+                    text += `📅 *Fecha:* ${this.deliveryDate}\n`;
+                    text += `💳 *Pago:* ${this.payMethod.toUpperCase()}\n`;
+                    text += `💰 *TOTAL:* S/ ${this.total.toFixed(2)}\n\n`;
+                    window.open(`https://wa.me/51984464009?text=${encodeURIComponent(text)}`, '_blank');
+                    this.resetShop();
+                },
+                resetShop() { 
+                    this.cart = []; this.timer = 1200; localStorage.removeItem('cart'); 
+                    this.payOpen = false; this.view = 'catalog'; window.scrollTo(0,0); 
+                }
+            }));
+        });
+    </script>
 </body>
 </html>
