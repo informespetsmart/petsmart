@@ -4,18 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PetSmart Elite | Official Store Premium</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .dark-mode { background-color: #0f172a !important; color: #f8fafc !important; }
+        .dark-mode .nav-blur { background: rgba(15, 23, 42, 0.8); border-color: #1e293b; }
+        .dark-mode .bg-white { background-color: #1e293b !important; border-color: #334155 !important; }
+        .dark-mode .text-slate-950 { color: #f8fafc !important; }
+        .dark-mode .text-slate-600, .dark-mode .text-slate-400 { color: #94a3b8 !important; }
+        .dark-mode .bg-slate-50, .dark-mode .bg-slate-100 { background-color: #0f172a !important; }
+        
         .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
@@ -35,9 +45,26 @@
         .truck-icon-anim { animation: truck-bounce 0.8s infinite ease-in-out; display: inline-block; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         .grayscale { filter: grayscale(1); }
+        /* Voltea el emoji y añade animación */
+.espejo-elite {
+    display: inline-block;
+    transform: scaleX(-1);
+    animation: bounce-truck 0.6s infinite ease-in-out;
+}
+
+@keyframes bounce-truck {
+    0%, 100% { transform: scaleX(-1) translateY(0); }
+    50% { transform: scaleX(-1) translateY(-5px); }
+}
+
+[x-cloak] { display: none !important; }
+.espejo-pro {
+    display: inline-block;
+    transform: scaleX(-1); /* Voltea el camión hacia la derecha */
+}
     </style>
 </head>
-<body x-data="shop" class="antialiased min-h-screen flex flex-col">
+<body x-data="shop" :class="darkMode ? 'dark-mode' : ''" class="antialiased min-h-screen flex flex-col bg-[#f8fafc]">
 
     <a href="https://www.facebook.com/PetSmart.oficial" target="_blank" class="fb-float"><i class="fa-brands fa-facebook-f text-xl"></i></a>
 
@@ -47,6 +74,10 @@
                 <img src="https://lh3.googleusercontent.com/d/1a34N4zgyMheifxMszHn4rE6EERoxqYW7" class="logo-custom select-none" onerror="this.src='https://via.placeholder.com/180x50?text=PETSMART+ELITE'">
             </div>
             <div class="flex items-center gap-4">
+                <button @click="darkMode = !darkMode" class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 transition-all">
+                    <i :class="darkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" class="text-xl"></i>
+                </button>
+
                 <template x-if="cart.length > 0">
                     <div :class="timer < 300 ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-900 text-white'" class="px-4 py-2 rounded-2xl flex items-center gap-2 shadow-lg transition-all duration-500">
                         <i class="fa-solid fa-clock-rotate-left text-xs"></i>
@@ -64,6 +95,26 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-6 py-12 flex-grow w-full">
+        <!-- Dashboard Estadísticas Admin -->
+        <div x-show="view === 'admin'" x-cloak class="mb-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-indigo-600 p-6 rounded-[35px] text-white shadow-xl">
+                <p class="text-[10px] font-black uppercase opacity-80 mb-2">Total Recaudado</p>
+                <h3 class="text-3xl font-[1000] italic" x-text="'S/ ' + stats.totalSoles.toFixed(2)"></h3>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-[35px] text-white shadow-xl">
+                <p class="text-[10px] font-black uppercase opacity-80 mb-2">Pedidos Totales</p>
+                <h3 class="text-3xl font-[1000] italic" x-text="stats.totalPedidos"></h3>
+            </div>
+            <div @click="exportToCSV" class="bg-emerald-500 p-6 rounded-[35px] text-white shadow-xl cursor-pointer hover:bg-emerald-600 transition-all flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-black uppercase opacity-80 mb-2">Reporte de Ventas</p>
+                    <h3 class="text-xl font-[1000] italic uppercase">Exportar Excel</h3>
+                </div>
+                <i class="fa-solid fa-file-excel text-3xl"></i>
+            </div>
+        </div>
+
+        <!-- Catalogo -->
         <div x-show="view === 'catalog'" x-transition:enter="transition ease-out duration-300">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 <template x-for="p in products" :key="p.id">
@@ -79,6 +130,7 @@
                     </div>
                 </template>
             </div>
+            <!-- Comunidad -->
             <div class="mt-24 mb-12">
                 <div class="flex items-center justify-between mb-10 px-4">
                     <h2 class="text-3xl font-[1000] italic uppercase tracking-tighter text-slate-950">Comunidad <span class="text-indigo-600">PetSmart</span></h2>
@@ -93,6 +145,7 @@
             </div>
         </div>
 
+        <!-- Detalle de Producto -->
         <div x-show="view === 'product'" x-cloak x-transition>
             <button @click="view = 'catalog'" class="mb-8 font-black text-xs uppercase italic text-slate-400 hover:text-indigo-600 flex items-center gap-2 transition-all">
                 <i class="fa-solid fa-arrow-left"></i> Regresar al Catálogo
@@ -136,22 +189,85 @@
                         </div>
                     </div>
                     <div class="flex items-end gap-3 mb-10">
-                        <span class="text-5xl font-[1000] text-slate-950 italic" x-text="'S/ ' + currentVariant?.price.toFixed(2)"></span>
+                        <span class="text-5xl font-[1000] text-slate-950 italic" x-text="'S/ ' + (currentVariant?.price ? currentVariant.price.toFixed(2) : '0.00')"></span>
                     </div>
                     <button @click="addToCart" :disabled="!currentVariant || currentVariant.stock <= 0" :class="!currentVariant || currentVariant.stock <= 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-slate-950'" class="w-full py-8 text-white rounded-[2.5rem] font-[1000] uppercase italic tracking-widest active:scale-95 transition-all shadow-2xl">Añadir al Pedido</button>
                 </div>
             </div>
         </div>
 
+         <!-- PANEL ADMIN EXTENDIDO -->
         <div x-show="view === 'admin'" x-cloak x-transition class="space-y-10">
             <div class="flex justify-between items-center mb-12">
                 <h2 class="text-4xl font-[1000] italic uppercase tracking-tighter text-slate-950">Panel <span class="text-indigo-600">Admin</span></h2>
                 <div class="flex gap-4">
+                    <button @click="viewPedidos = !viewPedidos" class="px-6 py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase italic">
+                        <span x-text="viewPedidos ? 'Ver Inventario' : 'Ver Pedidos'"></span>
+                    </button>
                     <button @click="saveInventory" class="px-6 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase italic hover:bg-emerald-700 transition-all">Guardar</button>
                     <button @click="view = 'catalog'" class="px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase italic hover:bg-indigo-600 transition-all">Salir</button>
                 </div>
             </div>
-            <div class="space-y-12">
+
+            <div x-show="viewPedidos" class="space-y-4">
+    <template x-for="ped in pedidos" :key="ped.id">
+        <div class="bg-white p-6 rounded-[35px] shadow-sm border border-slate-100 flex flex-col gap-4">
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-receipt text-2xl text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-400" x-text="ped.fecha"></p>
+                        <h4 class="text-sm font-black text-slate-950" x-text="ped.cliente"></h4>
+                        <div class="flex items-center gap-2">
+                            <p class="text-xs font-bold text-indigo-600" x-text="'S/ ' + parseFloat(ped.total).toFixed(2)"></p>
+                            <span class="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-black uppercase" x-text="getNombreEstado(ped.status)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button @click="verCaptura(ped.comprobante)" class="px-4 py-2 bg-blue-100 text-blue-600 rounded-xl text-[9px] font-black uppercase">Ver Pago</button>
+                    <button @click="eliminarPedido(ped.id)" class="px-4 py-2 bg-rose-100 text-rose-600 rounded-xl text-[9px] font-black uppercase">Borrar</button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-4 border-t border-slate-50">
+                <p class="text-[9px] font-black uppercase text-slate-400 mr-2">Gestión de Envío:</p>
+                
+                <button @click="actualizarEstadoPedido(ped.id, 1)" 
+                    :class="ped.status == 1 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'"
+                    class="px-3 py-2 rounded-xl text-[9px] font-black uppercase transition-all">
+                    1. Confirmado
+                </button>
+
+                <button @click="actualizarEstadoPedido(ped.id, 2)" 
+                    :class="ped.status == 2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'"
+                    class="px-3 py-2 rounded-xl text-[9px] font-black uppercase transition-all">
+                    2. Empaque
+                </button>
+
+                <button @click="actualizarEstadoPedido(ped.id, 3)" 
+                    :class="ped.status == 3 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'"
+                    class="px-3 py-2 rounded-xl text-[9px] font-black uppercase transition-all">
+                    3. En Ruta
+                </button>
+
+                <button @click="actualizarEstadoPedido(ped.id, 4)" 
+                    :class="ped.status == 4 ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-400'"
+                    class="px-3 py-2 rounded-xl text-[9px] font-black uppercase transition-all">
+                    4. Entregado
+                </button>
+            </div>
+
+        </div>
+    </template>
+</div>
+
+            <!-- Inventario -->
+            <div x-show="!viewPedidos" class="space-y-12">
                 <template x-for="p in products" :key="p.id">
                     <div class="bg-white p-8 rounded-[45px] shadow-sm border border-slate-100">
                         <div class="flex items-center gap-4 mb-8 border-b border-slate-50 pb-4">
@@ -168,7 +284,7 @@
                                     <p class="text-[9px] font-black text-indigo-600 uppercase mb-1" x-text="'TALLA ' + v.talla"></p>
                                     <p class="text-[7px] text-slate-300 text-center mb-4 font-bold" x-text="v.sku"></p>
                                     <div class="relative w-full">
-                                        <input type="number" x-model="v.stock" class="w-full text-center bg-white border border-slate-200 rounded-xl py-2 px-1 text-xs font-black text-indigo-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-inner">
+                                        <input type="number" x-model.number="v.stock" class="w-full text-center bg-white border border-slate-200 rounded-xl py-2 px-1 text-xs font-black text-indigo-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-inner">
                                         <span class="absolute -top-2 -right-1 bg-indigo-600 text-white text-[7px] px-1.5 rounded-full font-bold">STK</span>
                                     </div>
                                 </div>
@@ -184,8 +300,16 @@
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
                 <div class="space-y-8">
-                    <h4 class="text-2xl font-black italic">PETSMART <span class="text-indigo-500">ELITE</span></h4>
+                    <h4 class="text-2xl font-black italic">PETSMART <span class="text-indigo-500"></span></h4>
                     <p class="text-slate-400 text-[10px] font-black uppercase leading-loose tracking-[0.1em]">La primera boutique de transporte de lujo para mascotas en Lima.</p>
+                    <div class="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition-all">
+                        <div class="flex items-center gap-2 text-[9px] font-black uppercase">
+                            <i class="fa-solid fa-shield-halved text-xl text-emerald-500"></i> Pago Seguro
+                        </div>
+                        <div class="flex items-center gap-2 text-[9px] font-black uppercase">
+                            <i class="fa-solid fa-lock text-xl text-indigo-500"></i> SSL 256-bit
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <h4 class="text-indigo-500 font-black uppercase italic text-xs mb-8 tracking-widest border-l-4 border-indigo-500 pl-4">Menú</h4>
@@ -209,12 +333,13 @@
                 </div>
             </div>
             <div class="border-t border-white/5 pt-12 flex flex-col md:flex-row justify-between items-center gap-6">
-                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">© 2026 PETSMART ELITE. BASE SEGURA 0.3</p>
-                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] italic">Desarrollado por Milagros Huamani</p>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">© 2026 PETSMART</p>
+                <p class="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] italic">Desarrollado por CONHUA SMART TECNOLOGY</p>
             </div>
         </div>
     </footer>
 
+    <!-- BOLSA ELITE -->
     <div x-show="cartOpen" class="fixed inset-0 z-[200]" x-cloak>
         <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md" @click="cartOpen = false"></div>
         <div class="absolute inset-y-0 right-0 w-full max-w-sm bg-slate-950 text-white flex flex-col shadow-2xl transition-all" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="translate-x-full">
@@ -223,18 +348,12 @@
                     <h2 class="text-xl font-[1000] italic uppercase tracking-tighter">Bolsa <span class="text-indigo-500">Elite</span></h2>
                     <button @click="cartOpen = false" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
                 </div>
+                
                 <div x-show="cart.length > 0" class="mb-10 px-2">
                     <div class="flex justify-between items-end mb-2">
                         <p class="text-[9px] font-black uppercase italic" :class="subtotal < 75 ? 'text-indigo-400' : 'text-emerald-400'">
-                            <template x-if="!express">
-                                <span x-show="subtotal < 75">Te faltan S/ <span x-text="(75 - subtotal).toFixed(2)"></span> para delivery gratis</span>
-                            </template>
-                            <template x-if="!express">
-                                <span x-show="subtotal >= 75">¡Envío gratis activado!</span>
-                            </template>
-                            <template x-if="express">
-                                <span class="text-indigo-400">El envío express recibe tu producto hoy mismo</span>
-                            </template>
+                            <span x-show="!express && subtotal < 75">Te faltan S/ <span x-text="(75 - subtotal).toFixed(2)"></span> para delivery gratis</span>
+                            <span x-show="!express && subtotal >= 75">¡Envío gratis activado!</span>
                         </p>
                         <i class="fa-solid fa-truck-fast text-xs" :class="(subtotal >= 75 && !express) ? 'text-emerald-400' : 'text-indigo-400'"></i>
                     </div>
@@ -246,6 +365,8 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Items Carrito -->
                 <div class="space-y-4">
                     <template x-for="(item, index) in cart" :key="item.sku">
                         <div class="flex items-center gap-3 bg-white/5 p-3 rounded-[25px] border border-white/10">
@@ -268,28 +389,94 @@
                         </div>
                     </template>
                 </div>
-                <div x-show="cart.length > 0" class="mt-10 space-y-4">
-                    <p class="text-[9px] font-black uppercase text-slate-500 mb-2 tracking-widest">Datos de Entrega Obligatorios:</p>
-                    <div class="grid grid-cols-2 gap-2 mb-2">
-                        <button @click="express = false" :class="!express ? 'bg-indigo-600' : 'bg-white/5'" class="py-3 rounded-xl text-[10px] font-black uppercase">Estándar</button>
-                        <button @click="toggleExpress()" :class="express ? 'bg-indigo-600 animate-pulse' : 'bg-white/5'" class="py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-bolt"></i> Express
-                        </button>
-                    </div>
-                    <select x-model="selectedDistrito" @change="deliveryType='distrito'; selectedEstacion=''" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase outline-none text-slate-300">
-                        <option value="" class="bg-slate-950 italic">-- Seleccionar Distrito --</option>
-                        <template x-for="d in distritos"><option :value="d.name" x-text="d.name" class="bg-slate-950"></option></template>
-                    </select>
-                    <select x-model="selectedEstacion" @change="deliveryType='estacion'; selectedDistrito=''" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase outline-none text-slate-300">
-                        <option value="" class="bg-slate-950 italic">-- Seleccionar Estación --</option>
-                        <template x-for="e in estaciones"><option :value="e.name" x-text="e.name" class="bg-slate-950"></option></template>
-                    </select>
-                    <div class="space-y-2">
-                        <p class="text-[9px] font-black uppercase text-slate-500 tracking-widest">Fecha de Entrega:</p>
-                        <input type="date" x-model="deliveryDate" :min="minDate" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase outline-none text-slate-300 [color-scheme:dark]">
-                    </div>
-                </div>
             </div>
+<!-- SECCIÓN DE LOGÍSTICA (Precios ocultos al usuario) -->
+<div class="mt-8 space-y-4 bg-white/5 p-6 rounded-[30px] border border-white/10">
+    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Detalles de Entrega</p>
+
+    <!-- Selector: Distrito o Estación -->
+    <div class="flex gap-2 p-1 bg-black/40 rounded-2xl border border-white/5 shadow-inner">
+        <button type="button"
+                @click="deliveryType = 'distrito'; selectedEstacion = ''; selectedDistrito = ''" 
+                :class="deliveryType === 'distrito' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'" 
+                class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all">
+            Distritos
+        </button>
+        <button type="button"
+                @click="deliveryType = 'estacion'; selectedDistrito = ''; selectedEstacion = ''" 
+                :class="deliveryType === 'estacion' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'" 
+                class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all">
+            Estaciones
+        </button>
+    </div>
+
+    <!-- Lista Desplegable Unificada -->
+    <div x-show="deliveryType !== ''">
+        <select 
+            @change="
+                if(deliveryType === 'distrito') { 
+                    selectedDistrito = $el.value; 
+                    selectedEstacion = ''; 
+                } else { 
+                    selectedEstacion = $el.value; 
+                    selectedDistrito = ''; 
+                }"
+            class="w-full p-4 bg-white/10 border-2 border-white/10 rounded-2xl font-bold text-xs text-slate-200 outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer">
+            
+            <option value="" class="bg-slate-900 text-slate-500" 
+                    x-text="deliveryType === 'distrito' ? 'Selecciona Distrito...' : 'Selecciona Estación...'"></option>
+            
+            <template x-for="item in (deliveryType === 'distrito' ? distritos : estaciones)" :key="item.name">
+                <!-- Aquí está el truco: :value mantiene el nombre (o ID), pero x-text solo muestra el nombre -->
+                <option :value="item.name" 
+                        x-text="item.name" 
+                        class="bg-slate-900 text-white">
+                </option>
+            </template>
+        </select>
+    </div>
+
+    <!-- Calendario con Icono Visible -->
+<div class="space-y-2">
+    <div class="flex items-center gap-2 ml-2">
+        <i class="fa-solid fa-calendar-day text-indigo-400 text-[10px]"></i>
+        <label class="text-[9px] font-black text-slate-300 uppercase">Fecha de entrega:</label>
+    </div>
+    <div class="relative">
+        <input type="date" 
+               x-model="deliveryDate" 
+               :min="minDate" 
+               @change="validarFecha()"
+               class="w-full p-4 bg-white/10 border-2 border-white/10 rounded-2xl font-bold text-xs text-white outline-none focus:border-indigo-500 transition-all [color-scheme:dark]">
+        <!-- El [color-scheme:dark] hace que el icono nativo del calendario sea blanco -->
+    </div>
+</div>
+
+     <!-- Envío Express (Diseño Refinado) -->
+<div @click="express = !express; validarHorarioExpress()" 
+     class="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all"
+     :class="express ? 'bg-indigo-600/20 border-indigo-500' : 'bg-white/5 border-white/10 hover:border-white/20'">
+    
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" 
+             :class="express ? 'bg-indigo-500 text-white' : 'bg-white/10 text-slate-500'">
+            <i class="fa-solid fa-bolt-lightning text-xs"></i>
+        </div>
+        <div>
+            <p class="text-[10px] font-black uppercase transition-colors" 
+               :class="express ? 'text-white' : 'text-slate-300'">Envío Express ⚡</p>
+            <p class="text-[8px] font-bold uppercase text-slate-500">Mismo día (+ S/ 15)</p>
+        </div>
+    </div>
+
+    <!-- Toggle Switch visual -->
+    <div class="w-10 h-5 rounded-full relative transition-all" :class="express ? 'bg-indigo-500' : 'bg-white/10'">
+        <div class="absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm" 
+             :style="express ? 'right: 4px' : 'left: 4px'"></div>
+    </div>
+</div>
+</div>
+
             <div class="p-8 bg-white/5 border-t border-white/10" x-show="cart.length > 0">
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -307,7 +494,7 @@
             </div>
         </div>
     </div>
-
+    <!-- MODAL DE PAGO -->
     <div x-show="payOpen" class="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-10" x-cloak>
         <div class="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" @click="payOpen = false"></div>
         <div class="relative bg-white w-full max-w-4xl h-[650px] rounded-[50px] overflow-hidden flex flex-col md:flex-row shadow-2xl">
@@ -331,46 +518,112 @@
                         <span class="text-[9px] font-black uppercase">Contra Entrega</span>
                     </button>
                 </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-200">
+                    <p class="text-[9px] font-black uppercase text-slate-400 mb-3">Tu Pedido:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="item in cart">
+                            <div class="w-10 h-10 bg-white rounded-lg border border-slate-100 p-1 relative group">
+                                <img :src="item.img" class="w-full h-full object-contain">
+                                <span class="absolute -top-1 -right-1 bg-indigo-600 text-[8px] text-white w-4 h-4 flex items-center justify-center rounded-full font-bold" x-text="item.qty"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <div class="mt-auto pt-6 border-t border-slate-200">
                     <p class="text-[9px] font-black uppercase text-slate-400 mb-1">Total Final:</p>
                     <p class="text-2xl font-[1000] italic text-slate-950" x-text="'S/ ' + total.toFixed(2)"></p>
                 </div>
             </div>
-
+            <!-- Lado Derecho: Interfaz de Pago Dinámica -->
             <div class="flex-1 bg-white p-8 md:p-12 overflow-y-auto flex flex-col justify-center text-center">
+                
+                <!-- Pago por Yape -->
                 <div x-show="payMethod === 'yape'" x-transition class="space-y-6">
-                    <div class="bg-indigo-50 p-6 rounded-[40px] inline-block border border-indigo-100"><img src="https://lh3.googleusercontent.com/d/1R2QQ-IPMyFVSbjx6idOIYQ8F6LMYcErX" class="w-40 h-40 rounded-2xl mx-auto"></div>
-                    <h4 class="text-2xl font-[1000] text-slate-950 italic uppercase tracking-tighter">984464009</h4>
+                    <div class="bg-indigo-50 p-6 rounded-[40px] inline-block border border-indigo-100">
+                        <img src="https://lh3.googleusercontent.com/d/1R2QQ-IPMyFVSbjx6idOIYQ8F6LMYcErX" class="w-40 h-40 rounded-2xl mx-auto shadow-inner">
+                    </div>
+                    <h4 class="text-2xl font-[1000] text-slate-950 italic uppercase tracking-tighter">984 464 009</h4>
                     <p class="text-[10px] font-black uppercase text-indigo-600">Milagros Huamani</p>
-                    <button @click="navigator.clipboard.writeText('984464009'); alert('Número Copiado')" class="mt-4 px-6 py-2 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest">Copiar Número</button>
-                </div>
-                <div x-show="payMethod === 'banco'" x-transition class="text-left space-y-4">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase text-center mb-4">Cuentas Locales:</p>
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
-                        <div><p class="text-[9px] font-black text-indigo-500 uppercase">BCP SOLES</p><p class="text-xs font-black text-slate-950">192-9408105-0-62</p></div>
-                        <button @click="navigator.clipboard.writeText('192-9408105-0-62')"><i class="fa-solid fa-copy text-slate-300"></i></button>
+                    
+                    <div class="max-w-xs mx-auto mt-4">
+                        <label class="block text-[9px] font-black uppercase text-slate-400 mb-2 tracking-widest">Sube tu comprobante:</label>
+                        <input type="file" @change="handleFileUpload" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer transition-all">
                     </div>
                 </div>
-                <div x-show="payMethod === 'entrega'" x-transition class="space-y-6">
-                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-truck-ramp-box"></i></div>
-                    <p class="text-xs font-bold text-slate-500 leading-relaxed max-w-sm mx-auto">Requiere anticipo de S/ 5 para agendar. Cancela el resto al recibir su pedido.</p>
+
+                <!-- Pago por Transferencia -->
+                <div x-show="payMethod === 'banco'" x-transition class="text-left space-y-4">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase text-center mb-4 tracking-widest">Cuentas Locales:</p>
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group hover:border-indigo-200 transition-all">
+                        <div>
+                            <p class="text-[9px] font-black text-indigo-500 uppercase">BCP SOLES</p>
+                            <p class="text-xs font-black text-slate-950">192-9408105-0-62</p>
+                        </div>
+                        <button @click="navigator.clipboard.writeText('192-9408105-0-62'); alert('Copiado!')" class="p-2 hover:bg-indigo-50 rounded-lg transition-colors">
+                            <i class="fa-solid fa-copy text-slate-300 group-hover:text-indigo-600"></i>
+                        </button>
+                    </div>
+                    <div class="max-w-xs mx-auto mt-6 text-center">
+                        <input type="file" @change="handleFileUpload" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer transition-all">
+                    </div>
                 </div>
+
+                <!-- Pago Contra Entrega -->
+                <div x-show="payMethod === 'entrega'" x-transition class="space-y-6">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-[25px] flex items-center justify-center mx-auto text-3xl shadow-sm">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-xs font-black text-slate-950 uppercase italic">Confirmación requerida</p>
+                        <p class="text-[10px] font-bold text-slate-500 leading-relaxed max-w-[250px] mx-auto uppercase">Requiere anticipo de <span class="text-indigo-600">S/ 5</span> para agendar. Cancela el resto al recibir.</p>
+                    </div>
+                </div>
+
+                <!-- Botón de Finalización -->
                 <div class="mt-12">
-                    <button @click="sendWhatsApp" class="w-full py-6 bg-slate-950 text-white rounded-[2.5rem] font-[1000] uppercase italic text-xs tracking-widest shadow-2xl hover:bg-indigo-600 transition-all">Finalizar por WhatsApp</button>
+                    <button @click="sendWhatsApp" 
+                            :disabled="(uploading) || (!fileUploaded && payMethod !== 'entrega')" 
+                            :class="(uploading || (!fileUploaded && payMethod !== 'entrega')) ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:bg-indigo-600 hover:-translate-y-1'" 
+                            class="w-full py-6 bg-slate-950 text-white rounded-[2.5rem] font-[1000] uppercase italic text-xs tracking-widest shadow-2xl transition-all flex items-center justify-center gap-3">
+                        <template x-if="uploading">
+                            <i class="fa-solid fa-circle-notch animate-spin"></i>
+                        </template>
+                        <span x-text="uploading ? 'Subiendo Comprobante...' : 'Finalizar por WhatsApp'"></span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div x-show="isAdminModal" x-transition.opacity class="fixed inset-0 z-[500] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm" x-cloak>
-        <div class="bg-white p-8 rounded-[40px] w-full max-w-[320px] shadow-2xl text-center" @click.away="isAdminModal = false">
-            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Acceso Admin PetSmart</h3>
-            <input type="password" x-model="adminPass" placeholder="Contraseña Maestra" class="w-full bg-slate-100 border-none rounded-2xl p-4 text-center text-sm mb-4 outline-none focus:ring-2 focus:ring-indigo-600 transition-all">
-            <button @click="loginAdmin" class="w-full bg-slate-900 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all">Ingresar</button>
-        </div>
+    <!-- MODAL LOGIN ADMIN CORREGIDO -->
+<div x-show="isAdminModal" 
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 scale-90"
+     class="fixed inset-0 z-[500] flex items-center justify-center p-6" 
+     x-cloak>
+    <!-- Al hacer clic fuera, cerramos y limpiamos el pass -->
+    <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" @click="isAdminModal = false; adminPass = ''"></div>
+    
+    <div class="relative bg-white p-10 rounded-[40px] w-full max-w-sm shadow-2xl border border-slate-100">
+        <h3 class="text-xl font-[1000] italic uppercase mb-6 text-center">Acceso <span class="text-indigo-600">Elite</span></h3>
+        
+        <!-- Input con Enter para mayor comodidad -->
+        <input type="password" 
+               x-model="adminPass" 
+               @keydown.enter="loginAdmin"
+               placeholder="••••••••" 
+               class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl mb-4 text-center font-black outline-none focus:border-indigo-600 transition-all">
+        
+        <button @click="loginAdmin" 
+                class="w-full py-4 bg-slate-950 text-white rounded-2xl font-black uppercase italic text-xs tracking-widest hover:bg-indigo-600 transition-all">
+            Entrar al Panel
+        </button>
     </div>
-
+</div>
     <script>
+        // CONFIGURACIÓN FIREBASE INTEGRADA
         const firebaseConfig = {
             apiKey: "AIzaSyCThT_r5Yxo00UsjNOemZ7dqSluNI33IuE",
             authDomain: "petsmart2026-5a358.firebaseapp.com",
@@ -379,18 +632,42 @@
             messagingSenderId: "426151277613",
             appId: "1:426151277613:web:d6ed92602fc405b42cf4a4"
         };
+        
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
         document.addEventListener("alpine:init", () => {
             Alpine.data("shop", () => ({
-                view: 'catalog', cartOpen: false, payOpen: false, selectedProduct: null, 
-                currentTalla: '', currentVariant: null, payMethod: 'yape', express: false,
+                view: 'catalog', 
+                cartOpen: false, 
+                payOpen: false, 
+                selectedProduct: null, 
+                currentTalla: '', 
+                currentVariant: null, 
+                payMethod: 'yape', 
+                express: false,
                 cart: JSON.parse(localStorage.getItem('cart')) || [],
                 timer: parseInt(localStorage.getItem('cart_time')) || 1200,
-                selectedDistrito: '', selectedEstacion: '', deliveryType: '', deliveryDate: '',
-                isAdminModal: false, adminPass: '', logoClicks: 0,
+                selectedDistrito: '', 
+                selectedEstacion: '', 
+                deliveryType: 'distrito', 
+                deliveryDate: '',
+                isAdminModal: false, 
+                adminPass: '', 
+                logoClicks: 0,
+                darkMode: localStorage.getItem('dark-mode') === 'true',
+                viewPedidos: false,
+                fileUploaded: false,
+                tempFile: null,
+                uploading: false,
+                showTracking: false,
+                trackingStep: 1,
+                trackingMessages: ['Preparando pedido...', 'Verificando calidad...', 'Asignando repartidor...', '¡En camino!'],
+                pedidos: [], 
+                stats: { totalSoles: 0, totalPedidos: 0 },
+
                 distritos: [
                     {name:'Surco', cost:10}, {name:'Miraflores', cost:10}, {name:'San Borja', cost:10}, 
                     {name:'La Molina', cost:12}, {name:'Surquillo', cost:10}, {name:'Lince', cost:10},
@@ -400,172 +677,657 @@
                     {name:'Est. Angamos', cost:5}, {name:'Est. Cabitos', cost:5}, {name:'Est. Ayacucho', cost:5}, 
                     {name:'Est. Central', cost:7}, {name:'Est. Matellini', cost:5}, {name:'Est. Naranjal', cost:7}
                 ],
+                
                 products: [
                     { id: 1, name: "Transportadores Elite", image: "https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l", tallas: ['S', 'M', 'L','XL'], variants: [
-                        { sku: "TR-S-MO", talla: 'S', variantName: "Morado", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l" },
-                        { sku: "TR-S-VD", talla: 'S', variantName: "Verde Diseño", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1xNKzpVAIes7Xw8GCyD6fGlMkNhTtNjOJ" },
-                        { sku: "TR-S-AD", talla: 'S', variantName: "Azul Diseño", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1ggiiMd8M4t3BcsTWuydvJYGZbyyjotaU" },
-                        { sku: "TR-S-RD", talla: 'S', variantName: "Rojo Diseño", price: 38, stock: 1, img: "https://lh3.googleusercontent.com/d/1dxdbDTl1HiSDyDit5QmPDwGz57w0SxrE" },
-                        { sku: "TR-M-MO", talla: 'M', variantName: "Morado Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1Mgp9xvTLG7TlLpvdRSEiRFqUw5L0QwnB" },
-                        { sku: "TR-M-AZ", talla: 'M', variantName: "Azul Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1fFJP4P03osjlCdyONHJwRUTyimu29C2x" },
-                        { sku: "TR-M-RJ", talla: 'M', variantName: "Rojo Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1SntyoP5CDOuFTr2VpZ3fC1Xq1v94JCfk" },
-                        { sku: "TR-M-VD", talla: 'M', variantName: "Verde Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1lL6oe2OeLSC0mir7K0azipesDX5KUxye" },
-                        { sku: "TR-M-BG", talla: 'M', variantName: "Beige Tapa", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1GLdi7agLeD1byYo2TUsUcXSdQhnofumF" },
-                        { sku: "TR-M-R", talla: 'M', variantName: "Rojo", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1ZHkhE3BW-XnzLDRJZSLWX-Zn4ksXUKg1" },
-                        { sku: "TR-M-RD", talla: 'M', variantName: "Rojo Diseño", price: 44, stock: 1, img: "https://lh3.googleusercontent.com/d/1pdA5aP0vZikiF9ORO8ahv3WTCh88hY_g" },
-                        { sku: "TR-L-AC", talla: 'L', variantName: "Acero Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1UmTCLOkVtA_s7EsY2EdLKFcJbYnuB2Lp" },
-                        { sku: "TR-L-RJ", talla: 'L', variantName: "Rojo Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1Qf9p4nr9R6yUqbjnys0nRlcSMfQhwTfG" },
-                        { sku: "TR-L-RS", talla: 'L', variantName: "Rosa Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1OzeFzQQfPIyNbV_5lDyB5oYnaM-6vZOd" },
-                        { sku: "TR-L-GS", talla: 'L', variantName: "Gris Tapa", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1uxOcD5oS0SfG_xaasAxHQbc9KP3XysqT" },
-                        { sku: "TR-L-GD", talla: 'L', variantName: "Gris Diseño", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1HnOqGtylronP1je_Y1YfqOf9QapuPSrl" },
-                        { sku: "TR-L-MD", talla: 'L', variantName: "Marron Diseño", price: 54, stock: 1, img: "https://lh3.googleusercontent.com/d/1wglyp8HI1qDFKv3n-VGZfICphWWfHOUh" },
-                        { sku: "TR-XL-AZ", talla: 'XL', variantName: "Rojo Diseño", price: 62, stock: 1, img: "https://lh3.googleusercontent.com/d/" },
+                        { sku: "TR-S-MO", talla: 'S', variantName: "Morado", price: 38, stock: 0, img: "https://lh3.googleusercontent.com/d/1dRLB4AFofVyvN2o-c7-ktNAx2TB0uj8l" },
+                        { sku: "TR-S-VD", talla: 'S', variantName: "Verde Diseño", price: 38, stock: 0, img: "https://lh3.googleusercontent.com/d/1xNKzpVAIes7Xw8GCyD6fGlMkNhTtNjOJ" },
+                        { sku: "TR-S-AD", talla: 'S', variantName: "Azul Diseño", price: 38, stock: 0, img: "https://lh3.googleusercontent.com/d/1ggiiMd8M4t3BcsTWuydvJYGZbyyjotaU" },
+                        { sku: "TR-S-RD", talla: 'S', variantName: "Rojo Diseño", price: 38, stock: 0, img: "https://lh3.googleusercontent.com/d/1dxdbDTl1HiSDyDit5QmPDwGz57w0SxrE" },
+                        { sku: "TR-M-MO", talla: 'M', variantName: "Morado Tapa", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1Mgp9xvTLG7TlLpvdRSEiRFqUw5L0QwnB" },
+                        { sku: "TR-M-AZ", talla: 'M', variantName: "Azul Tapa", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1fFJP4P03osjlCdyONHJwRUTyimu29C2x" },
+                        { sku: "TR-M-RJ", talla: 'M', variantName: "Rojo Tapa", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1SntyoP5CDOuFTr2VpZ3fC1Xq1v94JCfk" },
+                        { sku: "TR-M-VD", talla: 'M', variantName: "Verde Tapa", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1lL6oe2OeLSC0mir7K0azipesDX5KUxye" },
+                        { sku: "TR-M-BG", talla: 'M', variantName: "Beige Tapa", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1GLdi7agLeD1byYo2TUsUcXSdQhnofumF" },
+                        { sku: "TR-M-R", talla: 'M', variantName: "Rojo", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1ZHkhE3BW-XnzLDRJZSLWX-Zn4ksXUKg1" },
+                        { sku: "TR-M-RD", talla: 'M', variantName: "Rojo Diseño", price: 44, stock: 0, img: "https://lh3.googleusercontent.com/d/1pdA5aP0vZikiF9ORO8ahv3WTCh88hY_g" },
+                        { sku: "TR-L-AC", talla: 'L', variantName: "Acero Tapa", price: 54, stock: 0, img: "https://lh3.googleusercontent.com/d/1UmTCLOkVtA_s7EsY2EdLKFcJbYnuB2Lp" },
+                        { sku: "TR-L-RJ", talla: 'L', variantName: "Rojo Tapa", price: 54, stock: 0, img: "https://lh3.googleusercontent.com/d/1Qf9p4nr9R6yUqbjnys0nRlcSMfQhwTfG" },
+                        { sku: "TR-L-RS", talla: 'L', variantName: "Rosa Tapa", price: 54, stock: 0, img: "https://lh3.googleusercontent.com/d/1OzeFzQQfPIyNbV_5lDyB5oYnaM-6vZOd" },
+                        { sku: "TR-L-GS", talla: 'L', variantName: "Gris Tapa", price: 54, stock: 0, img: "https://lh3.googleusercontent.com/d/1uxOcD5oS0SfG_xaasAxHQbc9KP3XysqT" },
+                        { sku: "TR-L-GD", talla: 'L', variantName: "Gris Diseño", price: 54, stock: 0, img: "https://lh3.googleusercontent.com/d/1HnOqGtylronP1je_Y1YfqOf9QapuPSrl" },
+                        { sku: "TR-L-MD", talla: 'L', variantName: "Marron Diseño", price: 54, stock: 0, img: "https://lh3.googleusercontent.com/d/1wglyp8HI1qDFKv3n-VGZfICphWWfHOUh" },
+                        { sku: "TR-XL-AZ", talla: 'XL', variantName: "Rojo Diseño", price: 62, stock: 0, img: "https://via.placeholder.com/250" },
                     ]},
                     { id: 2, name: "Camas Premium Soft", image: "https://via.placeholder.com/350?text=Cama+Elite", tallas: ['M', 'L'], variants: [
-                        { sku: "CA-M-RJ", talla: 'M', variantName: "Rojo", price: 85, stock: 10, img: "https://via.placeholder.com/250" }
+                        { sku: "CA-M-RJ", talla: 'M', variantName: "Rojo", price: 85, stock: 0, img: "https://via.placeholder.com/250" }
                     ]},
                     { id: 3, name: "Medias de Lujo", image: "https://via.placeholder.com/350?text=Medias", tallas: ['M', 'L'], variants: [
-                        { sku: "MD-M-J", talla: 'M', variantName: "Classic", price: 15, stock: 10, img: "https://via.placeholder.com/250" }
+                        { sku: "MD-M-J", talla: 'M', variantName: "Classic", price: 15, stock: 0, img: "https://via.placeholder.com/250" }
                     ]},
                     { id: 4, name: "Rascadores", image: "https://via.placeholder.com/350?text=Rascador", tallas: ['L'], variants: [
-                        { sku: "RC-L-J", talla: 'L', variantName: "Torre", price: 120, stock: 5, img: "https://via.placeholder.com/250" }
+                        { sku: "RC-L-J", talla: 'L', variantName: "Torre", price: 120, stock: 0, img: "https://via.placeholder.com/250" }
                     ]}
                 ],
 
-                get minDate() {
-                    let now = new Date();
-                    
-                    // Si ya pasó el mediodía (12:00 PM), la entrega mínima es mañana
-                    if (now.getHours() >= 12) {
-                        now.setDate(now.getDate() + 1);
-                    }
-                    
-                    // Formateamos la fecha manualmente usando la hora LOCAL (Perú)
-                    // Esto evita que el calendario se adelante por la zona horaria ISO
-                    let anio = now.getFullYear();
-                    let mes = String(now.getMonth() + 1).padStart(2, '0');
-                    let dia = String(now.getDate()).padStart(2, '0');
-                    
-                    return `${anio}-${mes}-${dia}`;
-                },
-                get isSelectionComplete() {
-                    return (this.selectedDistrito !== '' || this.selectedEstacion !== '') && this.deliveryDate !== '';
-                },
-                get subtotal() { return this.cart.reduce((s, i) => s + (i.price * i.qty), 0); },
-                get deliveryCost() {
-                    let cost = 0;
-                    if (this.express) {
-                        if (this.deliveryType === 'distrito') cost = this.distritos.find(d => d.name === this.selectedDistrito)?.cost || 0;
-                        else if (this.deliveryType === 'estacion') cost = this.estaciones.find(e => e.name === this.selectedEstacion)?.cost || 0;
-                        return cost + 10;
-                    }
-                    if (this.subtotal >= 75 || this.subtotal === 0) return 0;
-                    if (this.deliveryType === 'distrito') cost = this.distritos.find(d => d.name === this.selectedDistrito)?.cost || 0;
-                    else if (this.deliveryType === 'estacion') cost = this.estaciones.find(e => e.name === this.selectedEstacion)?.cost || 0;
-                    return cost;
-                },
-                get displayDeliveryText() {
-                    if (this.subtotal >= 75 && !this.express) return 'GRATIS';
-                    if (!this.selectedDistrito && !this.selectedEstacion) return '---';
-                    return 'S/ ' + this.deliveryCost.toFixed(2);
-                },
-                get total() { return this.subtotal + this.deliveryCost; },
-                get filteredVariants() { return this.selectedProduct ? this.selectedProduct.variants.filter(v => v.talla === this.currentTalla) : []; },
+               init() {
+    // 1. Sincronización de Stock
+    db.collection("stock").onSnapshot((snapshot) => {
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const sku = doc.id;
+            this.products.forEach(p => {
+                p.variants.forEach(v => {
+                    if (v.sku === sku) v.stock = data.stock;
+                });
+            });
+        });
+    });
 
-                init() {
-                    setInterval(() => { if (this.cart.length > 0) { this.timer--; if (this.timer <= 0) this.clearCartByTimer(); } }, 1000);
-                    this.$watch('cart', v => localStorage.setItem('cart', JSON.stringify(v)));
-                    this.$watch('timer', v => localStorage.setItem('cart_time', v));
-                },
-                toggleExpress() {
-                    let now = new Date();
-                    let hour = now.getHours();
-                    // Solo permite Express entre 10 AM y 3 PM (15:00)
-                    if (hour >= 10 && hour < 15) {
-                        this.express = !this.express;
-                    } else {
-                        alert("El servicio Express solo está disponible de 10:00 AM a 3:00 PM para entrega hoy mismo.");
-                        this.express = false;
-                    }
-                },
-                handleLogoClick() {
-                    this.logoClicks++;
-                    if (this.logoClicks >= 5) { this.isAdminModal = true; this.logoClicks = 0; }
-                    setTimeout(() => { this.logoClicks = 0; }, 3000);
-                },
-                async loginAdmin() {
-                    try {
-                        await auth.signInWithEmailAndPassword("informes.petsmart@gmail.com", this.adminPass);
-                        this.isAdminModal = false; this.view = 'admin';
-                    } catch (e) { alert("Error: Contraseña Incorrecta"); }
-                },
-                async saveInventory() {
-                    try {
-                        for (const p of this.products) {
-                            for (const v of p.variants) {
-                                await this.updateFirebaseStock(v.sku, v.stock);
-                            }
+    // 2. Sincronización de Pedidos (Panel Admin)
+    db.collection("pedidos").orderBy("fecha", "desc").onSnapshot((snapshot) => {
+        this.pedidos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.stats.totalSoles = this.pedidos.reduce((acc, p) => acc + (parseFloat(p.total) || 0), 0);
+        this.stats.totalPedidos = this.pedidos.length;
+    });
+
+    // 3. Temporizador del Carrito
+    setInterval(() => { 
+        if (this.cart.length > 0 && !this.payOpen) { 
+            this.timer--; 
+            if (this.timer <= 0) this.clearCartByTimer(); 
+        } 
+    }, 1000);
+
+    // 4. Observadores (LocalStorage)
+    this.$watch('cart', v => localStorage.setItem('cart', JSON.stringify(v)));
+    this.$watch('timer', v => localStorage.setItem('cart_time', v));
+    this.$watch('darkMode', v => localStorage.setItem('dark-mode', v));
+
+    // ==========================================
+    // 5. RASTREO REAL POR ID (ACTUALIZADO)
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackId = urlParams.get('id'); // Ahora buscamos por ?id=...
+
+    if (trackId) {
+        // Limpiamos la URL para que el ID no se vea sucio
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Abrimos el modal con un pequeño delay para asegurar que Alpine cargó
+        setTimeout(() => {
+            this.showTracking = true;
+            
+            // Escuchamos los cambios de ese pedido en Firebase
+            db.collection("pedidos").doc(trackId).onSnapshot((doc) => {
+                if (doc.exists) {
+                    const pedidoData = doc.data();
+                    // Sincroniza el camión con el campo 'status' de tu base de datos
+                    this.trackingStep = pedidoData.status || 1;
+                } else {
+                    console.error("El pedido no existe en la base de datos");
+                }
+            });
+        }, 800);
+    }
+},
+
+// Dentro de Alpine.data('tuNombre', () => ({ ...
+async actualizarEstadoPedido(id, nuevoEstado) {
+    await db.collection("pedidos").doc(id).update({
+        status: nuevoEstado
+    });
+},
+
+getNombreEstado(s) {
+    const nombres = { 1: 'Confirmado', 2: 'Empacando', 3: 'En camino', 4: 'Entregado' };
+    return nombres[s] || 'Pendiente';
+},
+
+               handleFileUpload(e) {
+                    const file = e.target.files[0];
+                    const limiteMB = 10 * 1024 * 1024;
+
+                    if (file) {
+                        // 1. Validar que sea imagen
+                        if (!file.type.startsWith('image/')) {
+                            e.target.value = ""; 
+                            this.tempFile = null;
+                            this.fileUploaded = false;
+                            
+                            // Usamos window.Swal para asegurar que lo encuentre
+                            window.Swal.fire({
+                                icon: 'error',
+                                title: '¡Atención!',
+                                text: 'Solo se permiten imágenes (JPG, PNG).',
+                                confirmButtonColor: '#4f46e5'
+                            });
+                            return;
                         }
-                        alert("Inventario guardado y actualizado en la nube correctamente.");
-                    } catch (e) {
-                        alert("Error al guardar inventario.");
+
+                        // 2. Validar peso
+                        if (file.size > limiteMB) {
+                            e.target.value = "";
+                            this.tempFile = null;
+                            this.fileUploaded = false;
+
+                            window.Swal.fire({
+                                icon: 'warning',
+                                title: 'Archivo muy grande',
+                                text: 'El comprobante no debe pesar más de 10MB.',
+                                confirmButtonColor: '#4f46e5'
+                            });
+                            return;
+                        }
+
+                        // Si todo está bien
+                        this.tempFile = file;
+                        this.fileUploaded = true;
                     }
                 },
-                async updateFirebaseStock(sku, stock) {
-                    try {
-                        await db.collection("stock").doc(sku).set({ stock: parseInt(stock) });
-                    } catch (e) { console.error("Firebase Error", e); }
+
+             async uploadToCloudinary(file) {
+    this.uploading = true;
+    const cloudName = "dgkyqld50"; // CAMBIA ESTO
+    const uploadPreset = "petsmart_preset"; // El que creaste como 'Unsigned'
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) throw new Error("Error en servidor Cloudinary");
+
+        const data = await response.json();
+        return data.secure_url; // Retorna la URL final de la foto
+    } catch (e) {
+        console.error("Error Cloudinary:", e);
+        window.Swal.fire('Error', 'No se pudo subir la imagen a la nube.', 'error');
+        return "Error";
+    } finally {
+        this.uploading = false;
+    }
+},
+// Guardar Inventario
+                async saveInventory() {
+    try {
+        // 1. Mostrar alerta de carga mientras se procesa en Firebase
+        Swal.fire({
+            title: 'Actualizando inventario...',
+            text: 'Por favor, espera un momento.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const batch = db.batch();
+        this.products.forEach(p => {
+            p.variants.forEach(v => {
+                const ref = db.collection("stock").doc(v.sku);
+                batch.set(ref, { stock: parseInt(v.stock) });
+            });
+        });
+
+        await batch.commit();
+
+        // 2. Alerta de éxito (reemplaza a la carga anterior)
+        Swal.fire({
+            icon: 'success',
+            title: '¡Logrado!',
+            text: 'El inventario se ha actualizado exitosamente.',
+            confirmButtonColor: '#4f46e5', // El color índigo de tu diseño
+            timer: 2000 // Se cierra sola después de 2 segundos si no hacen clic
+        });
+
+    } catch (e) {
+        // 3. Alerta de error
+        console.error("Error al guardar inventario:", e);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de actualización',
+            text: 'No se pudo guardar: ' + e.message,
+            confirmButtonColor: '#f43f5e' // Color rose/rojo
+        });
+    }
+},
+
+                async eliminarPedido(id) {
+                    if(confirm("¿Eliminar este registro permanentemente?")) {
+                        await db.collection("pedidos").doc(id).delete();
+                    }
                 },
-                formatTime(s) { const m = Math.floor(s / 60); const sec = s % 60; return `${m}:${sec < 10 ? '0' : ''}${sec}`; },
-                clearCartByTimer() { 
-                    // Al limpiar por tiempo, devolvemos el stock
-                    this.cart.forEach(item => {
-                        let product = this.products.find(p => p.name === item.name);
-                        let variant = product?.variants.find(v => v.sku === item.sku);
-                        if (variant) variant.stock += item.qty;
+
+                verCaptura(url) {
+    if (url && url !== 'No adjuntado') {
+        // En lugar de abrir una pestaña, mostramos la imagen en un modal elegante
+        Swal.fire({
+            title: 'Comprobante de Pago',
+            imageUrl: url,
+            imageAlt: 'Captura del comprobante',
+            width: 600,
+            padding: '2em',
+            background: '#ffffff',
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#4f46e5',
+            showCloseButton: true,
+            customClass: {
+                popup: 'rounded-[40px]',
+                image: 'rounded-2xl shadow-lg'
+            }
+        });
+    } else {
+        // Alerta de error si no hay archivo
+        Swal.fire({
+            icon: 'info',
+            title: 'Sin archivo',
+            text: 'El cliente no adjuntó un comprobante para este pedido.',
+            confirmButtonColor: '#4f46e5',
+            customClass: {
+                popup: 'rounded-[30px]'
+            }
+        });
+    }
+},
+
+                exportToCSV() {
+                    let csv = "\uFEFFFecha,Cliente,Total,Metodo,Lugar,Productos\n";
+                    this.pedidos.forEach(p => {
+                        csv += `${p.fecha},"${p.cliente}",${p.total},${p.metodo},${p.lugar},"${p.productos.join(' | ')}"\n`;
                     });
-                    this.cart = []; this.timer = 1200; localStorage.clear(); this.cartOpen = false; 
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute("download", `Ventas_PetSmart_${new Date().toLocaleDateString()}.csv`);
+                    link.click();
                 },
-                openProduct(p) { this.selectedProduct = p; this.currentTalla = p.tallas[0]; this.updateVariant(); this.view = 'product'; window.scrollTo(0,0); },
-                updateVariant() { this.currentVariant = this.filteredVariants[0] || null; },
-                addToCart() {
-                    if (!this.currentVariant || this.currentVariant.stock <= 0) return;
-                    let existing = this.cart.find(i => i.sku === this.currentVariant.sku);
-                    if (existing) { existing.qty++; } else { this.cart.push({ ...this.currentVariant, name: this.selectedProduct.name, qty: 1 }); }
-                    this.currentVariant.stock--; this.timer = 1200; this.cartOpen = true;
-                },
-                changeQty(index, n) {
+
+                async addToCart() {
+    // 1. Alerta de Error si no hay stock
+    if (!this.currentVariant || this.currentVariant.stock <= 0) {
+        Swal.fire({
+            icon: 'error',
+            title: '¡Oops!',
+            text: 'Lo sentimos, este producto se acaba de agotar.',
+            confirmButtonColor: '#4f46e5', // Indigo 600
+            customClass: {
+                popup: 'rounded-[30px]'
+            }
+        });
+        return;
+    }
+
+    try {
+        const newStock = this.currentVariant.stock - 1;
+        await db.collection("stock").doc(this.currentVariant.sku).update({ stock: newStock });
+
+        let existing = this.cart.find(i => i.sku === this.currentVariant.sku);
+        if (existing) { 
+            existing.qty++; 
+        } else { 
+            this.cart.push({ ...this.currentVariant, name: this.selectedProduct.name, qty: 1 }); 
+        }
+
+        // 2. Notificación estilo "Toast" (Elegante y rápida)
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: '¡Añadido a tu bolsa Elite!'
+        });
+
+        this.timer = 1200; 
+        this.cartOpen = true;
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No pudimos actualizar el carrito. Intenta de nuevo.',
+            confirmButtonColor: '#f43f5e'
+        });
+    }
+},
+
+                async changeQty(index, n) {
+    let item = this.cart[index];
+    let product = this.products.find(p => p.name === item.name);
+    let variant = product?.variants.find(v => v.sku === item.sku);
+
+    if (n > 0) {
+        if (variant && variant.stock > 0) {
+            item.qty++;
+            await db.collection("stock").doc(item.sku).update({ stock: variant.stock - 1 });
+        } else {
+            // REEMPLAZO POR SWEETALERT2
+            window.Swal.fire({
+                title: 'Stock insuficiente',
+                text: 'Lo sentimos, no hay más unidades disponibles.',
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#4f46e5', // Color Indigo-600
+                background: this.darkMode ? '#1e293b' : '#ffffff', // Se adapta a tu modo oscuro
+                color: this.darkMode ? '#ffffff' : '#000000',
+                borderRadius: '25px'
+            });
+        }
+    } else {
+        item.qty--;
+        await db.collection("stock").doc(item.sku).update({ stock: (variant ? variant.stock : 0) + 1 });
+        if (item.qty <= 0) this.cart.splice(index, 1);
+    }
+},
+
+                async removeProduct(index) {
                     let item = this.cart[index];
                     let product = this.products.find(p => p.name === item.name);
                     let variant = product?.variants.find(v => v.sku === item.sku);
-                    if (n > 0) { if (variant && variant.stock > 0) { item.qty++; variant.stock--; } } 
-                    else { item.qty--; if (variant) variant.stock++; if (item.qty <= 0) this.cart.splice(index, 1); }
-                },
-                removeProduct(index) {
-                    let item = this.cart[index];
-                    let product = this.products.find(p => p.name === item.name);
-                    let variant = product?.variants.find(v => v.sku === item.sku);
-                    if (variant) variant.stock += item.qty;
+                    await db.collection("stock").doc(item.sku).update({ stock: (variant ? variant.stock : 0) + item.qty });
                     this.cart.splice(index, 1);
                 },
-                openCheckout() { if (this.isSelectionComplete) this.payOpen = true; },
-                sendWhatsApp() {
-                    let text = `✨ *NUEVO PEDIDO - PETSMART ELITE* ✨\n\n`;
-                    this.cart.forEach(i => { text += `• ${i.name} (${i.talla}) x${i.qty} - S/ ${(i.price * i.qty).toFixed(2)}\n`; });
-                    text += `\n--------------------------\n`;
-                    text += `📌 *Entrega:* ${this.selectedDistrito || this.selectedEstacion} ${this.express ? '(EXPRESS ⚡)' : '(ESTÁNDAR)'}\n`;
-                    text += `📅 *Fecha:* ${this.deliveryDate}\n`;
-                    text += `💳 *Pago:* ${this.payMethod.toUpperCase()}\n`;
-                    text += `💰 *TOTAL:* S/ ${this.total.toFixed(2)}\n\n`;
-                    window.open(`https://wa.me/51984464009?text=${encodeURIComponent(text)}`, '_blank');
-                    this.resetShop();
+
+                async clearCartByTimer() { 
+                    for (const item of this.cart) {
+                        let product = this.products.find(p => p.name === item.name);
+                        let variant = product?.variants.find(v => v.sku === item.sku);
+                        await db.collection("stock").doc(item.sku).update({ stock: (variant ? variant.stock : 0) + item.qty });
+                    }
+                    this.cart = []; this.timer = 1200; localStorage.clear(); this.cartOpen = false; 
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Bolsa Expirada',
+                        text: 'Tu bolsa ha sido liberada para que otros puedan comprar el stock.',
+                        confirmButtonColor: '#4f46e5'
+                    });
                 },
-                resetShop() { 
-                    this.cart = []; this.timer = 1200; localStorage.removeItem('cart'); 
-                    this.payOpen = false; this.view = 'catalog'; window.scrollTo(0,0); 
-                }
+
+                // NUEVA FUNCIÓN DE VALIDACIÓN DE HORARIO
+                validarHorarioExpress() {
+                    const ahora = new Date();
+                    const hora = ahora.getHours();
+                    const minutos = ahora.getMinutes();
+                    const tiempoActual = (hora * 60) + minutos;
+
+                    const inicio = (10 * 60) + 30; // 10:30 AM
+                    const fin = (15 * 60) + 0;    // 03:00 PM
+
+                    if (this.express && (tiempoActual < inicio || tiempoActual > fin)) {
+                        this.express = false; 
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Servicio DExpress',
+                            html: `El delivery express solo está disponible de:<br><b>10:30 AM a 3:00 PM</b><br><br>Actualmente son las ${ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}.`,
+                            confirmButtonColor: '#4f46e5'
+                        });
+                    }
+                },
+
+// --- Validación para el calendario ---
+get minDate() {
+    const ahora = new Date();
+    // Si son las 12:00 PM o más, sumamos un día
+    if (ahora.getHours() >= 12) {
+        ahora.setDate(ahora.getDate() + 1);
+    }
+    
+    // Extraer año, mes y día local
+    const y = ahora.getFullYear();
+    const m = String(ahora.getMonth() + 1).padStart(2, '0');
+    const d = String(ahora.getDate()).padStart(2, '0');
+    
+    return `${y}-${m}-${d}`;
+},
+
+validarFecha() {
+    if (!this.deliveryDate) return;
+
+    const fechaMinimaPermitida = this.minDate; // Obtenemos el "YYYY-MM-DD" de la función de arriba
+
+    // Si la fecha elegida es menor a la mínima permitida por el horario
+    if (this.deliveryDate < fechaMinimaPermitida) {
+        this.deliveryDate = ""; // Resetear campo
+        
+        Swal.fire({
+            icon: 'warning',
+            title: 'Horario Límite',
+            text: 'Para entregas hoy, el pedido debe realizarse antes del mediodía. Por favor, elige otra fecha.',
+            confirmButtonColor: '#4f46e5',
+            customClass: {
+                popup: 'rounded-[30px]'
+            }
+        });
+    }
+},
+                get subtotal() { return this.cart.reduce((s, i) => s + (i.price * i.qty), 0); },
+                
+                get deliveryCost() {
+                    if (this.express) return 15;
+                    if (this.subtotal >= 75) return 0;
+                    let base = 0;
+                    if (this.deliveryType === 'distrito') {
+                        base = this.distritos.find(d => d.name === this.selectedDistrito)?.cost || 0;
+                    } else {
+                        base = this.estaciones.find(e => e.name === this.selectedEstacion)?.cost || 0;
+                    }
+                    return base;
+                },
+
+                get total() { return this.subtotal + this.deliveryCost; },
+                
+                get isSelectionComplete() { return (this.selectedDistrito || this.selectedEstacion) && this.deliveryDate; },
+                
+                get displayDeliveryText() {
+                    if (this.express) return 'DExpress (S/ 15.00)';
+                    return this.deliveryCost === 0 ? 'GRATIS' : 'S/ ' + this.deliveryCost.toFixed(2);
+                },
+
+                get filteredVariants() { return this.selectedProduct ? this.selectedProduct.variants.filter(v => v.talla === this.currentTalla) : []; },
+
+              handleLogoClick() {
+                    // Usamos logoClicks porque así lo definiste en tu x-data
+                    this.logoClicks++;
+                    if (this.logoClicks >= 5) {
+                        this.isAdminModal = true; // Abrimos el modal correcto
+                        this.logoClicks = 0;
+                    }
+                },
+                
+                async loginAdmin() {
+                    if (this.intentosLogin >= 3) {
+                        Swal.fire({ icon: 'error', title: 'Acceso Bloqueado', text: 'Superaste los 3 intentos.' });
+                        return;
+                    }
+
+                    try {
+                        const correoFull = "informes.petsmart@gmail.com";
+                        // Login directo con Firebase
+                        await firebase.auth().signInWithEmailAndPassword(correoFull, this.adminPass);
+                        
+                        this.intentosLogin = 0;
+                        this.isAdminModal = false; 
+                        this.view = 'admin'; // Cambia la pantalla a la de administrador
+                        this.adminPass = '';
+                        Swal.fire({ icon: 'success', title: '¡Bienvenido!', timer: 1500, showConfirmButton: false });
+                    } catch (e) {
+                        this.intentosLogin = (this.intentosLogin || 0) + 1;
+                        Swal.fire({ icon: 'warning', title: 'Error', text: `Clave incorrecta. Intentos: ${this.intentosLogin}/3` });
+                        this.adminPass = '';
+                    }
+                },
+
+                // A partir de aquí el resto de tus funciones siguen igual...
+                formatTime(s) { const m = Math.floor(s / 60); const sec = s % 60; return `${m}:${sec < 10 ? '0' : ''}${sec}`; },
+                openProduct(p) { this.selectedProduct = p; this.currentTalla = p.tallas[0]; this.updateVariant(); this.view = 'product'; window.scrollTo(0,0); },
+                updateVariant() { this.currentVariant = this.filteredVariants[0] || null; },
+               openCheckout() {
+    if (this.isSelectionComplete) {
+        this.payOpen = true;
+    } else {
+        // Alerta de advertencia si faltan datos
+        Swal.fire({
+            icon: 'warning',
+            title: 'Datos incompletos',
+            text: 'Por favor, selecciona el lugar y la fecha de entrega para continuar con tu pedido.',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#4f46e5', // Indigo 600
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-[30px]',
+                title: 'font-[1000] uppercase italic tracking-tighter',
+                confirmButton: 'rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-widest'
+            }
+        });
+    }
+},
+   async sendWhatsApp() {
+    if (this.uploading) return;
+    
+    let fileUrl = "No adjuntado";
+    
+    // 1. Subida a Cloudinary
+    if (this.tempFile) {
+        fileUrl = await this.uploadToCloudinary(this.tempFile);
+        if (fileUrl === "Error") return;
+    }
+
+    // 2. Guardar en Firebase y obtener ID
+    let pedidoId = "";
+    try {
+        const docRef = await db.collection("pedidos").add({
+            fecha: new Date().toLocaleString('es-PE'),
+            cliente: "Cliente Web",
+            total: this.total.toFixed(2),
+            metodo: this.payMethod,
+            status: 1, // <--- Iniciamos en estado 1 (Confirmado)
+            lugar: this.selectedDistrito || this.selectedEstacion,
+            comprobante: fileUrl,
+            productos: this.cart.map(i => `${i.name} (${i.sku}) x${i.qty}`)
+        });
+        pedidoId = docRef.id; // Guardamos el ID único de Firebase
+    } catch (error) {
+        console.error("Error Firebase:", error);
+        return window.Swal.fire('Error', 'No se pudo registrar el pedido.', 'error');
+    }
+
+    // 3. Generar Enlace de Rastreo con ID real
+    const trackingLink = `${window.location.origin}${window.location.pathname}?id=${pedidoId}`;
+
+    // 4. Preparar Texto para WhatsApp (Versión Profesional Elite)
+let text = `*RESUMEN DE COMPRA* | *PETSMART*\n`;
+text += `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n`;
+
+this.cart.forEach(i => { 
+    // Usamos símbolos cuadrados para un look más moderno
+    text += `▪︎ ${i.name} (${i.talla})\n`;
+    text += `  ${i.qty} unidad(es) — S/ ${(i.price * i.qty).toFixed(2)}\n\n`; 
+});
+
+text += `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n`;
+text += `▫︎ *ENTREGA:* ${this.selectedDistrito || this.selectedEstacion} ${this.express ? '⚡ [EXPRESS]' : ''}\n`;
+text += `▫︎ *FECHA:* ${this.deliveryDate}\n`;
+text += `▫︎ *PAGO:* ${this.payMethod.toUpperCase()}\n`;
+text += `\n*TOTAL: S/ ${this.total.toFixed(2)}*\n`;
+text += `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n`;
+
+text += `📍 *RASTREO EN TIEMPO REAL:*\n`;
+text += `${trackingLink}\n\n`;
+text += `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n`;
+
+if(this.tempFile) {
+    text += `\n✓ _Comprobante verificado en sistema_`;
+}
+    
+    // 5. Abrir WhatsApp
+    window.open(`https://wa.me/51984464009?text=${encodeURIComponent(text)}`, '_blank');
+    
+    // 6. Limpieza y apertura del modal local
+    this.resetShop();
+    this.showTracking = true;
+    this.trackingStep = 1;
+    
+    // Opcional: Una pequeña animación inicial de carga
+    setTimeout(() => { this.trackingStep = 1; }, 500);
+},
             }));
         });
+        // 1. Bloqueo de fechas pasadas **
+document.addEventListener("DOMContentLoaded", function() {
+    const fechaInput = document.querySelector('input[type="date"]');
+    if (fechaInput) {
+        const hoy = new Date().toISOString().split('T')[0];
+        fechaInput.setAttribute('min', hoy);
+    }
+});
+// Bloquear clic derecho y teclas de copia
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 'i')) {
+        e.preventDefault();
+    }
+});
     </script>
+    <!-- MODAL DE RASTREO ELITE -->
+<div x-show="showTracking" 
+     x-cloak
+     x-transition.opacity 
+     class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+    
+    <div @click.away="showTracking = false" 
+         class="bg-white dark:bg-gray-900 w-full max-w-md rounded-[40px] p-10 shadow-2xl border border-white/10 relative overflow-hidden">
+        
+        <div class="text-center">
+            <h3 class="text-xs font-black uppercase tracking-[0.2em] text-indigo-500 mb-2">Logística en Tiempo Real</h3>
+            <p class="text-2xl font-black italic uppercase tracking-tighter dark:text-white mb-12">Seguimiento Elite</p>
+            
+            <div class="relative h-20 mb-16 flex items-center px-2">
+                <div class="absolute left-0 right-0 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full mx-4"></div>
+                
+                <div class="absolute left-0 h-1.5 bg-indigo-500 transition-all duration-[1000ms] ease-out rounded-full ml-4" 
+                     :style="`width: calc(${(trackingStep - 1) * 33.3}% - 8px)`"></div>
+                
+                <div class="absolute transition-all duration-[1000ms] ease-out z-10"
+                     :style="`left: calc(${(trackingStep - 1) * 33.3}% - 15px)`">
+                    <div class="text-5xl espejo-elite">🚚</div>
+                    <div class="w-10 h-2 bg-black/10 dark:bg-black/40 rounded-full blur-sm mx-auto -mt-1"></div>
+                </div>
+
+                <div class="flex justify-between w-full absolute left-0 right-0 px-4">
+                    <template x-for="i in 4">
+                        <div :class="trackingStep >= i ? 'bg-indigo-500 scale-110 shadow-lg shadow-indigo-500/50' : 'bg-gray-200 dark:bg-gray-700'"
+                             class="w-5 h-5 rounded-full border-4 border-white dark:border-gray-900 transition-all duration-700">
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-[2rem] p-6 mb-8 border border-indigo-100/50 dark:border-indigo-500/10">
+                <p class="text-indigo-600 dark:text-indigo-400 font-black text-xl italic uppercase tracking-tight" 
+                   x-text="trackingMessages[trackingStep - 1]">
+                </p>
+            </div>
+
+            <button @click="showTracking = false" 
+                    class="w-full bg-gray-900 dark:bg-white dark:text-gray-900 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl">
+                Entendido
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
