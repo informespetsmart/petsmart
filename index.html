@@ -711,16 +711,28 @@
                 ],
 
                init() {
-    // 1. Sincronización de Stock
+   // 1. Sincronización de Stock (ELITE REAL-TIME)
     db.collection("stock").onSnapshot((snapshot) => {
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const sku = doc.id;
-            this.products.forEach(p => {
-                p.variants.forEach(v => {
-                    if (v.sku === sku) v.stock = data.stock;
+        snapshot.docChanges().forEach((change) => {
+            // Solo procesamos si el dato cambió en la base de datos
+            if (change.type === "added" || change.type === "modified") {
+                const data = change.doc.data();
+                const sku = change.doc.id;
+
+                // Actualizamos el array global de productos
+                this.products.forEach(p => {
+                    p.variants.forEach(v => {
+                        if (v.sku === sku) {
+                            v.stock = parseInt(data.stock); 
+                        }
+                    });
                 });
-            });
+
+                // Si el usuario tiene el producto abierto en este momento, actualizamos la vista
+                if (this.currentVariant && this.currentVariant.sku === sku) {
+                    this.currentVariant.stock = parseInt(data.stock);
+                }
+            }
         });
     });
 
@@ -948,24 +960,28 @@ getNombreEstado(s) {
                 },
 
                 async addToCart() {
-    // 1. Alerta de Error si no hay stock
+    // 1. Validación preventiva local (para no disparar procesos si ya dice 0)
     if (!this.currentVariant || this.currentVariant.stock <= 0) {
         Swal.fire({
             icon: 'error',
             title: '¡Oops!',
             text: 'Lo sentimos, este producto se acaba de agotar.',
-            confirmButtonColor: '#4f46e5', // Indigo 600
-            customClass: {
-                popup: 'rounded-[30px]'
-            }
+            confirmButtonColor: '#4f46e5',
+            customClass: { popup: 'rounded-[30px]' }
         });
         return;
     }
 
     try {
-        const newStock = this.currentVariant.stock - 1;
-        await db.collection("stock").doc(this.currentVariant.sku).update({ stock: newStock });
+        // --- CAMBIO CLAVE 1: OPERACIÓN ATÓMICA ---
+        // No calculamos el stock aquí. Le decimos a Firebase que reste 1 al valor que tenga en su servidor.
+        const stockRef = db.collection("stock").doc(this.currentVariant.sku);
+        
+        await stockRef.update({
+            stock: firebase.firestore.FieldValue.increment(-1)
+        });
 
+        // --- CAMBIO CLAVE 2: ACTUALIZACIÓN DE CARRITO ---
         let existing = this.cart.find(i => i.sku === this.currentVariant.sku);
         if (existing) { 
             existing.qty++; 
@@ -973,17 +989,13 @@ getNombreEstado(s) {
             this.cart.push({ ...this.currentVariant, name: this.selectedProduct.name, qty: 1 }); 
         }
 
-        // 2. Notificación estilo "Toast" (Elegante y rápida)
+        // 2. Tu notificación Toast (Se mantiene igual porque es visual)
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 2000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-            }
+            timerProgressBar: true
         });
 
         Toast.fire({
@@ -995,45 +1007,64 @@ getNombreEstado(s) {
         this.cartOpen = true;
 
     } catch (error) {
-        console.error(error);
+        console.error("Error al descontar stock:", error);
+        // Si Firebase rechaza la operación (ej. por reglas de seguridad o conexión)
         Swal.fire({
             icon: 'error',
-            title: 'Error de conexión',
-            text: 'No pudimos actualizar el carrito. Intenta de nuevo.',
+            title: 'Stock no disponible',
+            text: 'Alguien más completó la compra antes. El inventario se ha actualizado.',
             confirmButtonColor: '#f43f5e'
         });
     }
 },
 
-                async changeQty(index, n) {
+             async changeQty(index, n) {
     let item = this.cart[index];
     let product = this.products.find(p => p.name === item.name);
     let variant = product?.variants.find(v => v.sku === item.sku);
+    const stockRef = db.collection("stock").doc(item.sku);
 
     if (n > 0) {
+        // 1. Validamos si hay stock antes de intentar sumar
         if (variant && variant.stock > 0) {
-            item.qty++;
-            await db.collection("stock").doc(item.sku).update({ stock: variant.stock - 1 });
+            try {
+                // OPERACIÓN ATÓMICA: Restamos 1 en el servidor
+                await stockRef.update({ 
+                    stock: firebase.firestore.FieldValue.increment(-1) 
+                });
+                item.qty++;
+            } catch (error) {
+                console.error("Error al sumar stock:", error);
+            }
         } else {
-            // REEMPLAZO POR SWEETALERT2
             window.Swal.fire({
                 title: 'Stock insuficiente',
                 text: 'Lo sentimos, no hay más unidades disponibles.',
                 icon: 'warning',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: '#4f46e5', // Color Indigo-600
-                background: this.darkMode ? '#1e293b' : '#ffffff', // Se adapta a tu modo oscuro
+                confirmButtonColor: '#4f46e5',
+                background: this.darkMode ? '#1e293b' : '#ffffff',
                 color: this.darkMode ? '#ffffff' : '#000000',
-                borderRadius: '25px'
+                customClass: { popup: 'rounded-[25px]' }
             });
         }
     } else {
-        item.qty--;
-        await db.collection("stock").doc(item.sku).update({ stock: (variant ? variant.stock : 0) + 1 });
-        if (item.qty <= 0) this.cart.splice(index, 1);
+        // 2. Restar cantidad o eliminar del carrito
+        try {
+            // OPERACIÓN ATÓMICA: Devolvemos 1 al stock en el servidor
+            await stockRef.update({ 
+                stock: firebase.firestore.FieldValue.increment(1) 
+            });
+            
+            item.qty--;
+            if (item.qty <= 0) {
+                this.cart.splice(index, 1);
+            }
+        } catch (error) {
+            console.error("Error al devolver stock:", error);
+        }
     }
 },
-
                 async removeProduct(index) {
                     let item = this.cart[index];
                     let product = this.products.find(p => p.name === item.name);
